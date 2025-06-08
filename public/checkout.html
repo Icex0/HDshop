@@ -28,18 +28,14 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
-        .profile-picture {
+        .profile-image {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-weight: bold;
+            object-fit: cover;
+            border: 2px solid #007bff;
         }
         .profile-link {
             color: #007bff;
@@ -48,6 +44,19 @@
         }
         .profile-link:hover {
             text-decoration: underline;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
         }
         .cart-items {
             margin-bottom: 30px;
@@ -151,9 +160,9 @@
         <div class="header">
             <h1>Checkout</h1>
             <div class="user-info">
-                <div class="profile-picture">{{user.username.charAt(0).toUpperCase()}}</div>
-                <a href="/profile.html" class="profile-link">Profile</a>
-                <button ng-click="logout()">Logout</button>
+                <img class="profile-image" ng-src="{{user.profile_image || '/assets/images/default-avatar.png'}}" alt="Profile Image">
+                <a href="/profile.html" class="profile-link" ng-bind-html="trustedUsername"></a>
+                <button class="logout-btn" ng-click="logout()">Logout</button>
             </div>
         </div>
 

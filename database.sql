@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
-    role VARCHAR(20) DEFAULT 'user'
+    role VARCHAR(20) DEFAULT 'user',
+    profile_image VARCHAR(255)
 );
 
 -- Create orders table

@@ -165,12 +165,14 @@ angular.module('vulnerableApp', [])
                 });
         };
     })
-    .controller('CheckoutController', function($scope, $http, $window) {
+    .controller('CheckoutController', function($scope, $http, $window, $sce) {
         // Check session
         $http.get('http://localhost:3000/api/session')
             .then(function(response) {
                 if (response.data.success) {
                     $scope.user = response.data.user;
+                    // Vulnerable: Trusting user input as HTML
+                    $scope.trustedUsername = $sce.trustAsHtml(response.data.user.username);
                 } else {
                     $window.location.href = '/';
                 }
@@ -241,7 +243,7 @@ angular.module('vulnerableApp', [])
                 });
         };
     })
-    .controller('ProfileController', function($scope, $http, $window) {
+    .controller('ProfileController', function($scope, $http, $window, $timeout) {
         // Check session and get user ID
         $http.get('/api/session')
             .then(function(response) {
@@ -252,11 +254,14 @@ angular.module('vulnerableApp', [])
                     $http.get('/api/user/' + userId)
                         .then(function(response) {
                             $scope.user = response.data.user;
+                            // Ensure profile image is included
+                            if (!$scope.user.profile_image) {
+                                $scope.user.profile_image = '/assets/images/default-avatar.png';
+                            }
                         })
                         .catch(function(error) {
                             console.error('Error fetching user data:', error);
-                            $scope.message = 'Error loading profile';
-                            $scope.success = false;
+                            $scope.showNotification('Error loading profile', false);
                         });
 
                     // Fetch order history
@@ -266,16 +271,23 @@ angular.module('vulnerableApp', [])
                         })
                         .catch(function(error) {
                             console.error('Error fetching orders:', error);
-                            $scope.message = 'Error loading order history';
-                            $scope.success = false;
+                            $scope.showNotification('Error loading order history', false);
                         });
                 } else {
-                    $window.location.href = '/login.html';
+                    $window.location.href = '/';
                 }
             })
             .catch(function() {
-                $window.location.href = '/login.html';
+                $window.location.href = '/';
             });
+
+        $scope.showNotification = function(message, isSuccess) {
+            $scope.message = message;
+            $scope.success = isSuccess;
+            $timeout(function() {
+                $scope.message = '';
+            }, 3000);
+        };
 
         $scope.updateProfile = function() {
             const data = {
@@ -291,18 +303,15 @@ angular.module('vulnerableApp', [])
             $http.post('/api/profile/update', data)
                 .then(function(response) {
                     if (response.data.success) {
-                        $scope.message = 'Profile updated successfully';
-                        $scope.success = true;
+                        $scope.showNotification('Profile updated successfully', true);
                         $scope.currentPassword = '';
                         $scope.newPassword = '';
                     } else {
-                        $scope.message = response.data.message || 'Error updating profile';
-                        $scope.success = false;
+                        $scope.showNotification(response.data.message || 'Error updating profile', false);
                     }
                 })
                 .catch(function(error) {
-                    $scope.message = error.data?.message || 'Error updating profile';
-                    $scope.success = false;
+                    $scope.showNotification(error.data?.message || 'Error updating profile', false);
                 });
         };
 
@@ -314,5 +323,51 @@ angular.module('vulnerableApp', [])
                 .catch(function(error) {
                     console.error('Error logging out:', error);
                 });
+        };
+
+        $scope.uploadImage = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Client-side file type validation
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                $scope.$apply(function() {
+                    $scope.message = 'Only PNG and JPG files are allowed';
+                    $scope.success = false;
+                });
+                input.value = ''; // Clear the file input
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            $http.post('/api/user/' + $scope.user.id + '/image', formData, {
+                transformRequest: angular.identity,
+                headers: {
+                    'Content-Type': undefined
+                }
+            })
+            .then(function(response) {
+                if (response.data.success) {
+                    $scope.$apply(function() {
+                        $scope.user.profile_image = response.data.imagePath;
+                        $scope.message = 'Profile image updated successfully';
+                        $scope.success = true;
+                    });
+                } else {
+                    $scope.$apply(function() {
+                        $scope.message = response.data.message || 'Error updating profile image';
+                        $scope.success = false;
+                    });
+                }
+            })
+            .catch(function(error) {
+                $scope.$apply(function() {
+                    $scope.message = error.data?.message || 'Error updating profile image';
+                    $scope.success = false;
+                });
+            });
         };
     }); 

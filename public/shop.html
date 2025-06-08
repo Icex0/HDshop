@@ -29,17 +29,17 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
-        .profile-picture {
+        .profile-image {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+        .username {
+            color: #007bff;
             font-weight: bold;
         }
         .profile-link {
@@ -198,6 +198,8 @@
         <div class="header">
             <h1>Welcome, <span ng-bind-html="trustedUsername"></span>!</h1>
             <div class="user-info">
+                <img class="profile-image" ng-src="{{user.profile_image || '/assets/images/default-avatar.png'}}" alt="Profile Image">
+                <a href="/profile.html" class="profile-link" ng-bind-html="trustedUsername"></a>
                 <div class="cart-icon" ng-click="toggleCart()">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count" ng-if="cart.length > 0">{{cart.length}}</span>
@@ -225,8 +227,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="profile-picture">{{user.username.charAt(0).toUpperCase()}}</div>
-                <a href="/profile.html" class="profile-link">Profile</a>
                 <button class="logout-btn" ng-click="logout()">Logout</button>
             </div>
         </div>

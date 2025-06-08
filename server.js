@@ -5,6 +5,8 @@ const { Pool } = require('pg');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
@@ -18,6 +20,31 @@ app.use(cookieParser());
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Vulnerable: No file type validation, allows SVG files
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        // Vulnerable: Using original filename without sanitization
+        cb(null, file.originalname);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    // Vulnerable: No file size limits
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    }
+});
 
 // Database connection
 const pool = new Pool({
@@ -219,10 +246,31 @@ app.post('/api/profile/update', async (req, res) => {
 app.get('/api/session', (req, res) => {
   const sessionId = req.cookies.sessionId;
   if (sessionId && sessions.has(sessionId)) {
-    res.json({ 
-      success: true, 
-      user: sessions.get(sessionId)
-    });
+    const session = sessions.get(sessionId);
+    // Get user data including profile image
+    pool.query('SELECT id, username, email, role, profile_image FROM users WHERE id = $1', [session.userId])
+      .then(result => {
+        if (result.rows.length > 0) {
+          res.json({ 
+            success: true, 
+            user: {
+              ...session,
+              profile_image: result.rows[0].profile_image
+            }
+          });
+        } else {
+          res.json({ 
+            success: false, 
+            message: 'User not found'
+          });
+        }
+      })
+      .catch(error => {
+        res.json({ 
+          success: false, 
+          message: 'Error fetching user data'
+        });
+      });
   } else {
     res.json({ 
       success: false, 
@@ -261,7 +309,7 @@ app.get('/api/user/:userId', async (req, res) => {
 
   try {
     // Vulnerable: No authorization check - allows fetching any user's data
-    const query = 'SELECT id, username, email, role FROM users WHERE id = $1';
+    const query = 'SELECT id, username, email, role, profile_image FROM users WHERE id = $1';
     const result = await pool.query(query, [req.params.userId]);
     
     if (result.rows.length === 0) {
@@ -386,6 +434,37 @@ app.get('/api/user/:userId/orders', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Vulnerable: Profile image upload endpoint
+app.post('/api/user/:userId/image', upload.single('profileImage'), async (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated'
+        });
+    }
+
+    try {
+        const session = sessions.get(sessionId);
+        const imagePath = '/uploads/' + req.file.filename;
+
+        // Update user's profile image in database
+        const query = 'UPDATE users SET profile_image = $1 WHERE id = $2 RETURNING profile_image';
+        const result = await pool.query(query, [imagePath, req.params.userId]);
+
+        res.json({
+            success: true,
+            message: 'Profile image updated successfully',
+            imagePath: result.rows[0].profile_image
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // Vulnerable: No rate limiting
