@@ -20,6 +20,9 @@
   - No HTTP Strict Transport Security (HSTS)
   - No Referrer header
   - No Permission Policy
+  - No X-Frame-Options
+  - No X-Content-Type-Options
+  - X-Powered-By header discloses tech
 - 🦠 **Stored XSS**
   - Vector: `username` via create user or update user settings
 - 🧱 **Broken Access Control**
