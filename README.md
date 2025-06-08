@@ -33,10 +33,12 @@
   - Vector: `username` via create user or update user settings
 - 🧱 **Broken Access Control**
   - Any user can:
-    - `GET /api/user/<ID>` > Retrieve data from other users
+    - `GET /api/user/<ID>` > Retrieve data from other users (IDOR)
     - `GET /api/users` > Get data from all users
-    - `GET /api/user/<ID>/orders` > Get orders from other users
+    - `GET /api/user/<ID>/orders` > Get orders from other users (IDOR)
     - `POST /api/user/<ID>/image` > Add profile images to other users (containing XSS)
+  - When updating a user profile, a POST request is made to `/api/profile/update` which contains a `role` parameter (not shown on the client-side).
+    - "role":"user" can be changed to "role":"admin" which leads to vertical privilege escalation
 - 🔐 **Sensitive Data Exposure**
   - Passwords and API keys present in `config.json`
 - 🧠 **Logic Bugs**
