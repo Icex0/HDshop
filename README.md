@@ -23,7 +23,7 @@
   - No X-Frame-Options
   - No X-Content-Type-Options
   - X-Powered-By header discloses tech
-- 🦠 **Stored XSS**
+- 🦠 **XSS - Stored Cross-Site Scritping**
   - Vector: `username` via create user or update user settings
 - 🧱 **Broken Access Control**
   - Any user can:
@@ -46,6 +46,8 @@
   - Origin can be set by user
 - ⚠️**Outdated Swagger-UI (3.25.0) leads to XSS**
   - Example: http://localhost:3000/api-docs/?configUrl=https://xss.smarpo.com/test.json
+- 🛠️**CSRF (Cross-Site Request Forgery) on any request**
+  - There are no anti-CSRF tokens and the session cookie has SameSite none
 ---
 
 ## TODO:
