@@ -254,10 +254,6 @@ angular.module('vulnerableApp', [])
                     $http.get('/api/user/' + userId)
                         .then(function(response) {
                             $scope.user = response.data.user;
-                            // Ensure profile image is included
-                            if (!$scope.user.profile_image) {
-                                $scope.user.profile_image = '/assets/images/default-avatar.png';
-                            }
                         })
                         .catch(function(error) {
                             console.error('Error fetching user data:', error);
@@ -337,6 +333,9 @@ angular.module('vulnerableApp', [])
                     $scope.success = false;
                 });
                 input.value = ''; // Clear the file input
+                $timeout(function() {
+                    $scope.message = '';
+                }, 3000);
                 return;
             }
 
@@ -351,16 +350,26 @@ angular.module('vulnerableApp', [])
             })
             .then(function(response) {
                 if (response.data.success) {
-                    $scope.$apply(function() {
-                        $scope.user.profile_image = response.data.imagePath;
+                    $timeout(function() {
+                        // Add a unique cache-busting query string
+                        $scope.user.profile_image = response.data.imagePath + '?t=' + Date.now() + Math.random();
                         $scope.message = 'Profile image updated successfully';
                         $scope.success = true;
+                        // Reset file input
+                        input.value = '';
                     });
+                    $timeout(function() {
+                        $scope.message = '';
+                    }, 3000);
                 } else {
                     $scope.$apply(function() {
                         $scope.message = response.data.message || 'Error updating profile image';
                         $scope.success = false;
+                        input.value = '';
                     });
+                    $timeout(function() {
+                        $scope.message = '';
+                    }, 3000);
                 }
             })
             .catch(function(error) {
@@ -368,6 +377,9 @@ angular.module('vulnerableApp', [])
                     $scope.message = error.data?.message || 'Error updating profile image';
                     $scope.success = false;
                 });
+                $timeout(function() {
+                    $scope.message = '';
+                }, 3000);
             });
         };
     }); 

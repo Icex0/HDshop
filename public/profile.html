@@ -178,12 +178,22 @@
             align-items: center;
             gap: 15px;
         }
-        .profile-image img {
+        .profile-image img, .profile-image .default-avatar {
             width: 150px;
             height: 150px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #007bff;
+        }
+        .profile-image .default-avatar {
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
         .profile-image input[type="file"] {
             display: none;
@@ -219,7 +229,10 @@
         </div>
 
         <div class="profile-image">
-            <img ng-src="{{user.profile_image || '/assets/images/default-avatar.png'}}" alt="Profile Image">
+            <img ng-if="user.profile_image" ng-src="{{user.profile_image}}" alt="Profile Image">
+            <div ng-if="!user.profile_image" class="default-avatar">
+                {{user.username.charAt(0).toUpperCase()}}
+            </div>
             <label for="profileImage">Change Profile Picture</label>
             <input type="file" id="profileImage" accept="image/*" onchange="angular.element(this).scope().uploadImage(this)">
         </div>
