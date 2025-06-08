@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const multer = require('multer');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 const app = express();
 const port = 3000;
@@ -17,6 +19,9 @@ app.use(cors());
 // No input validation middleware
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Serve Swagger UI at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));

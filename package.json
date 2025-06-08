@@ -14,7 +14,9 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "express": "^4.17.1",
-    "pg": "^8.7.1"
+    "pg": "^8.7.1",
+    "swagger-ui-dist": "3.25.0",
+    "swagger-ui-express": "4.0.7"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
