@@ -54,9 +54,13 @@
   - There are no anti-CSRF tokens and the session cookie has SameSite none
 ---
 
+![logging app](./images/log-monitor.png)
+![hdshop profile](./images/profile.jpg)
+![hdshop](./images/shop.png)
+
 ## TODO:
 
-- **Reflected XSS in some parameter**
+- **Reflected XSS in   parameter**
 - **API endpoint for profile image retrieval** > **LFI**
 - **CSTI**
 - **Open redirect**
