@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html ng-app="vulnerableApp">
+<head>
+    <title>User Profile</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .header button:hover {
+            background-color: #c82333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .nav-links {
+            margin-top: 20px;
+        }
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .order-history {
+            margin-top: 40px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        .order-card {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .order-id {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .order-date {
+            color: #6c757d;
+        }
+        .order-total {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .order-items {
+            margin-top: 10px;
+        }
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+        .order-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .order-item-details {
+            flex-grow: 1;
+        }
+        .order-item-name {
+            font-weight: bold;
+            margin: 0;
+        }
+        .order-item-price {
+            color: #6c757d;
+            margin: 0;
+        }
+        .no-orders {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container" ng-controller="ProfileController">
+        <div class="header">
+            <h1>User Profile</h1>
+            <button ng-click="logout()">Logout</button>
+        </div>
+
+        <form ng-submit="updateProfile()">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" ng-model="user.username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" ng-model="user.email" required>
+            </div>
+            <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" ng-model="currentPassword">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" ng-model="newPassword">
+            </div>
+            <button type="submit">Update Profile</button>
+        </form>
+
+        <p ng-if="message" style="color: {{success ? 'green' : 'red'}}">{{message}}</p>
+
+        <div class="order-history">
+            <h2>Order History</h2>
+            <div ng-if="orders.length === 0" class="no-orders">
+                <p>No orders found</p>
+            </div>
+            <div class="order-card" ng-repeat="order in orders">
+                <div class="order-header">
+                    <span class="order-id">Order #{{order.id}}</span>
+                    <span class="order-date">{{order.created_at | date:'medium'}}</span>
+                </div>
+                <div class="order-items">
+                    <div class="order-item" ng-repeat="item in order.items">
+                        <img ng-src="{{item.image}}" alt="{{item.name}}">
+                        <div class="order-item-details">
+                            <p class="order-item-name">{{item.name}}</p>
+                            <p class="order-item-price">${{item.price}}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-total">
+                    Total: ${{order.total_amount}}
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/shop.html">Back to Shop</a>
+        </div>
+    </div>
+</body>
+</html> 

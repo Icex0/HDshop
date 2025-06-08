@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html ng-app="vulnerableApp">
+<head>
+    <title>Vulnerable Shop</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .shop-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .profile-picture {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        }
+        .profile-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .profile-link:hover {
+            text-decoration: underline;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .product {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background: white;
+            transition: transform 0.2s;
+        }
+        .product:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .product button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .product button:hover {
+            background-color: #0056b3;
+        }
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .cart-icon i {
+            font-size: 24px;
+            color: #007bff;
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .cart-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 300px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            z-index: 1000;
+            display: none;
+        }
+        .cart-dropdown.show {
+            display: block;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        .cart-item-name {
+            font-weight: bold;
+            margin: 0;
+        }
+        .cart-item-price {
+            color: #007bff;
+            margin: 0;
+        }
+        .cart-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #eee;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .cart-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .cart-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .view-cart-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .checkout-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .empty-cart-message {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="shop-container" ng-controller="ShopController">
+        <div class="header">
+            <h1>Welcome, <span ng-bind-html="trustedUsername"></span>!</h1>
+            <div class="user-info">
+                <div class="cart-icon" ng-click="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" ng-if="cart.length > 0">{{cart.length}}</span>
+                    <div class="cart-dropdown" ng-class="{'show': showCart}">
+                        <div ng-if="cart.length === 0" class="empty-cart-message">
+                            Your cart is empty
+                        </div>
+                        <div ng-if="cart.length > 0">
+                            <div class="cart-item" ng-repeat="item in cart">
+                                <img ng-src="{{item.image}}" alt="{{item.name}}">
+                                <div class="cart-item-details">
+                                    <p class="cart-item-name">{{item.name}}</p>
+                                    <p class="cart-item-price">${{item.price}}</p>
+                                </div>
+                                <button class="remove-btn" ng-click="removeFromCart($index)">×</button>
+                            </div>
+                            <div class="cart-total">
+                                <span>Total:</span>
+                                <span>${{getTotal()}}</span>
+                            </div>
+                            <div class="cart-actions">
+                                <button class="view-cart-btn" ng-click="goToCheckout()">View Cart</button>
+                                <button class="checkout-btn" ng-click="checkout()">Checkout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-picture">{{user.username.charAt(0).toUpperCase()}}</div>
+                <a href="/profile.html" class="profile-link">Profile</a>
+                <button class="logout-btn" ng-click="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="products">
+            <div class="product" ng-repeat="product in products">
+                <img ng-src="{{product.image}}" alt="{{product.name}}">
+                <h3>{{product.name}}</h3>
+                <p>{{product.description}}</p>
+                <p class="price">Price: ${{product.price}}</p>
+                <button ng-click="addToCart(product)">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

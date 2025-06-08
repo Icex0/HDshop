@@ -1,0 +1,39 @@
+{
+    "development": {
+      "app": {
+        "name": "MyNodeApp",
+        "port": 3000,
+        "logLevel": "debug"
+      },
+      "db": {
+        "host": "localhost",
+        "port": 5432,
+        "username": "devuser",
+        "password": "devpassword",
+        "database": "my_node_app_dev"
+      },
+      "api": {
+        "baseUrl": "https://api.dev.example.com",
+        "apiKey": "dev-api-key-12345"
+      }
+    },
+    "production": {
+      "app": {
+        "name": "MyNodeApp",
+        "port": 8080,
+        "logLevel": "error"
+      },
+      "db": {
+        "host": "prod-db.example.com",
+        "port": 5432,
+        "username": "produser",
+        "password": "prodpassword",
+        "database": "my_node_app"
+      },
+      "api": {
+        "baseUrl": "https://api.example.com",
+        "apiKey": "prod-api-key-67890"
+      }
+    }
+  }
+  
