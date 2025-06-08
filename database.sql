@@ -30,5 +30,9 @@ SELECT 'admin', 'admin@example.com', 'admin', 'admin'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
 
 INSERT INTO users (username, email, password, role)
-SELECT 'user', 'user@example.com', 'password', 'user'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'user1');
+SELECT 'pentest1', 'pentest1@example.com', 'password', 'user'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'pentest1');
+
+INSERT INTO users (username, email, password, role)
+SELECT 'pentest2', 'pentest2@example.com', 'password', 'user'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'pentest2');
