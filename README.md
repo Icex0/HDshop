@@ -1,14 +1,16 @@
 # HDshop
 
 ## Tech ##
-- HDshop at port 3000
+- HDshop app at port `3000`
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL
-  - Swagger UI accessible at /api-docs (does not include the file upload API endpoint)
-- Log monitor application at port 3050 (you can filter for requests etc). Includes 2 API endpoints:
-  - http://localhost:3050/api/logs
-  - http://localhost:3050/api/health
+  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint /api/user/<ID>/image)
+  - access.log persisted in Docker volume `hdapp_app_logs` (or use the log monitor app)
+- Log monitor application at port `3050` (you can filter for requests etc)
+  - Includes 2 API endpoints:
+    - http://localhost:3050/api/logs
+    - http://localhost:3050/api/health
 - Docker-compose included to easily start and stop everything
 
 ## Includes the following vulnerabilities:
@@ -48,10 +50,14 @@
 - 🛡️ **Vulnerable CORS configuration on APIs**
   - Access-Control-Allow-Crendentials (ACAC) on true
   - Origin can be set by user
-- ⚠️**Outdated Swagger-UI (3.25.0) leads to XSS**
+- ⚠️ **Outdated Swagger-UI (3.25.0) leads to XSS**
   - Example: http://localhost:3000/api-docs/?configUrl=https://xss.smarpo.com/test.json
-- 🛠️**CSRF (Cross-Site Request Forgery) on any request**
+- 🛠️ **CSRF (Cross-Site Request Forgery) on any request**
   - There are no anti-CSRF tokens and the session cookie has SameSite none
+- 📂 **LFI - Local file inclusion**
+  - API endpoint for profile image retrieval > `GET /api/user/2/image?file=../../../etc/passwd`
+  - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
+
 ---
 
 ![logging app](./images/log-monitor.png)
@@ -62,8 +68,7 @@
 
 ## TODO:
 
-- **Reflected XSS in   parameter**
-- **API endpoint for profile image retrieval** > **LFI**
+- **Reflected XSS in parameter**
 - **CSTI**
 - **Open redirect**
 - **SSRF**
