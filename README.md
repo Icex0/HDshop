@@ -22,6 +22,9 @@
   - No server-side validation on product pricing
 - ❌ Verbose errors in production
 - 🔓 Change user settings without requiring current password
+- 🔓 Passwords stored in plaintext
+- 🔓 Default credentials > Postgres and webapp
+
 
 ---
 
