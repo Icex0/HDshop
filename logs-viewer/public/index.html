@@ -108,16 +108,103 @@
         .logs-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
         .logs-header h2 {
             color: #ffffff;
             font-size: 1.4rem;
             font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .header-controls .search-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #404060;
+            border-radius: 8px;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .search-container.exclude-container {
+            border-color: #dc3545;
+        }
+
+        .search-container.exclude-container:focus-within {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            outline: none;
+            width: 100%;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .search-input::placeholder {
+            color: #888;
+        }
+
+        .search-icon {
+            color: #667eea;
+            font-size: 1rem;
+        }
+
+        .search-options {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            color: #b0b0b0;
+            transition: color 0.3s;
+        }
+
+        .search-option:hover {
+            color: #e0e0e0;
+        }
+
+        .search-option input[type="checkbox"] {
+            accent-color: #667eea;
+        }
+
+        .search-results-info {
+            color: #667eea;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .controls {
@@ -507,6 +594,48 @@
                 align-items: stretch;
             }
 
+            .logs-header > div:first-child {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .logs-header > div:first-child > div:first-child {
+                text-align: center;
+            }
+
+            .logs-header > div:first-child .controls {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .logs-header > div:first-child > div:last-child {
+                align-items: center;
+            }
+
+            .logs-header > div:first-child > div:last-child .controls {
+                justify-content: center;
+            }
+
+            .header-controls {
+                align-items: stretch;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .search-options {
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
             .controls {
                 justify-content: center;
             }
@@ -519,6 +648,37 @@
             .logs-stats {
                 gap: 1rem;
             }
+
+            .modal-content {
+                margin: 5% auto;
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+
+        .log-entry.post-data:hover {
+            background: rgba(23, 162, 184, 0.2);
+        }
+
+        .log-entry.simplified {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .log-entry.simplified:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .log-entry.simplified.post-data {
+            border-left-color: #17a2b8;
+            background: rgba(23, 162, 184, 0.08);
+        }
+
+        .log-entry.simplified.post-request {
+            border-left-color: #ffc107;
+            background: rgba(255, 193, 7, 0.08);
         }
     </style>
 </head>
@@ -538,25 +698,68 @@
     <div class="container">
         <div class="logs-container">
             <div class="logs-header">
-                <h2>HTTP Access Logs</h2>
-                <div class="controls">
-                    <div class="auto-refresh-toggle">
-                        <span>Auto-refresh</span>
-                        <div class="toggle-switch" id="autoRefreshToggle"></div>
+                <div style="margin-bottom: 1rem;">
+                    <h2 style="margin-bottom: 0.5rem; white-space: nowrap;">HTTP Access Logs</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: flex-start;">
+                        <label class="search-option">
+                            <input type="checkbox" id="simplifiedView">
+                            <span>Simplified View</span>
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: flex-start;">
+                            <div class="auto-refresh-toggle">
+                                <span>Auto-refresh</span>
+                                <div class="toggle-switch" id="autoRefreshToggle"></div>
+                            </div>
+                            <button class="refresh-btn" id="refreshBtn">
+                                <span>Refresh</span>
+                            </button>
+                        </div>
                     </div>
-                    <button class="refresh-btn" id="refreshBtn">
-                        <span>🔄</span>
-                        <span>Refresh</span>
-                    </button>
+                </div>
+                <div class="header-controls">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search logs... (IP, URL, method, data)">
+                        <button class="refresh-btn" id="clearSearch" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-left: 0.5rem;">Clear</button>
+                    </div>
+                    <div class="search-container exclude-container" style="margin-top: 0.5rem;">
+                        <span class="search-icon" style="color: #dc3545;">🚫</span>
+                        <input type="text" class="search-input" id="excludeInput" placeholder="Exclude... (e.g., cat AND dog, .css, POST AND login)">
+                        <label class="search-option" style="margin-left: 0.5rem; white-space: nowrap;">
+                            <input type="checkbox" id="excludeEnabled">
+                            <span>Enable Exclude</span>
+                        </label>
+                    </div>
+                    <div class="search-options">
+                        <label class="search-option">
+                            <input type="checkbox" id="caseSensitive">
+                            <span>Case Sensitive</span>
+                        </label>
+                        <label class="search-option">
+                            <input type="checkbox" id="regexSearch">
+                            <span>Regex</span>
+                        </label>
+                        <label class="search-option">
+                            <input type="checkbox" id="postDataOnly">
+                            <span>POST Data Only</span>
+                        </label>
+                    </div>
                 </div>
             </div>
             
             <div class="logs-info">
-                <div id="logsInfo">Connecting to log service...</div>
+                <div>
+                    <span id="logsInfo">Connecting to log service...</span>
+                    <span class="search-results-info" id="searchResults" style="display: none;"></span>
+                </div>
                 <div class="logs-stats">
                     <div class="stat-item">
                         <div class="stat-value" id="totalLogs">0</div>
                         <div>Total Logs</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="filteredLogs">0</div>
+                        <div>Filtered</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="lastUpdate">Never</div>
@@ -588,6 +791,9 @@
         let isAutoRefreshEnabled = true;
         let lastLogCount = 0;
         let isLoading = false; // Prevent multiple simultaneous requests
+        let allLogs = []; // Store all logs for filtering
+        let filteredLogs = []; // Store filtered logs
+        let currentSearchTerm = '';
 
         const elements = {
             connectionStatus: document.getElementById('connectionStatus'),
@@ -596,7 +802,17 @@
             refreshBtn: document.getElementById('refreshBtn'),
             autoRefreshToggle: document.getElementById('autoRefreshToggle'),
             totalLogs: document.getElementById('totalLogs'),
-            lastUpdate: document.getElementById('lastUpdate')
+            filteredLogs: document.getElementById('filteredLogs'),
+            lastUpdate: document.getElementById('lastUpdate'),
+            searchInput: document.getElementById('searchInput'),
+            searchResults: document.getElementById('searchResults'),
+            clearSearch: document.getElementById('clearSearch'),
+            caseSensitive: document.getElementById('caseSensitive'),
+            regexSearch: document.getElementById('regexSearch'),
+            postDataOnly: document.getElementById('postDataOnly'),
+            simplifiedView: document.getElementById('simplifiedView'),
+            excludeInput: document.getElementById('excludeInput'),
+            excludeEnabled: document.getElementById('excludeEnabled')
         };
 
         async function loadLogs() {
@@ -630,60 +846,20 @@
                     elements.lastUpdate.textContent = new Date().toLocaleTimeString();
                     
                     if (data.logs && data.logs.length > 0) {
-                        const newLogCount = data.logs.length;
-                        const hasNewLogs = newLogCount > lastLogCount;
-                        
                         console.log('Processing logs:', data.logs.length);
                         
-                        elements.logsList.innerHTML = data.logs.map((log, index) => {
-                            const isNew = hasNewLogs && index >= lastLogCount;
-                            
-                            // Check if this is a POST data entry
-                            if (log.includes('POST_DATA:')) {
-                                console.log('Found POST_DATA entry:', log);
-                                const postDataMatch = log.match(/POST_DATA: (.+?) - IP: (.+?) - Data: (.+?) - UserAgent: (.+)/);
-                                if (postDataMatch) {
-                                    const [, url, ip, postData, userAgent] = postDataMatch;
-                                    const timestamp = log.match(/\[(.*?)\]/)?.[1] || 'Unknown';
-                                    
-                                    console.log('Parsed POST data:', { url, ip, postData, userAgent, timestamp });
-                                    
-                                    return `<div class="log-entry post-data ${isNew ? 'new' : ''}" 
-                                                 data-post-url="${escapeHtml(url)}" 
-                                                 data-post-ip="${escapeHtml(ip)}" 
-                                                 data-post-data="${escapeHtml(encodeURIComponent(postData))}" 
-                                                 data-post-agent="${escapeHtml(encodeURIComponent(userAgent))}" 
-                                                 data-post-timestamp="${escapeHtml(timestamp)}">
-                                        <span class="post-data-badge">POST DATA</span>
-                                        ${escapeHtml(`${timestamp} - ${url} - IP: ${ip}`)}
-                                        <div style="margin-top: 0.5rem; color: #17a2b8; font-size: 0.7rem;">🔍 Click to view POST data</div>
-                                    </div>`;
-                                } else {
-                                    console.log('POST_DATA entry did not match regex:', log);
-                                }
-                            }
-                            
-                            // Check if this is a regular POST request
-                            if (log.includes('"POST ')) {
-                                const postMatch = log.match(/"POST ([^"]+)"/);
-                                if (postMatch) {
-                                    return `<div class="log-entry post-request ${isNew ? 'new' : ''}">
-                                        <span class="post-data-badge">POST</span>
-                                        ${escapeHtml(log)}
-                                    </div>`;
-                                }
-                            }
-                            
-                            // Regular log entry
-                            return `<div class="log-entry ${isNew ? 'new' : ''}">${escapeHtml(log)}</div>`;
-                        }).join('');
+                        // Store all logs for searching
+                        allLogs = [...data.logs];
                         
-                        lastLogCount = newLogCount;
+                        // Perform search to update filtered logs
+                        performSearch();
                         
-                        // Auto-scroll to bottom to show latest logs
-                        elements.logsList.scrollTop = elements.logsList.scrollHeight;
+                        lastLogCount = data.logs.length;
                     } else {
+                        allLogs = [];
+                        filteredLogs = [];
                         elements.logsList.innerHTML = '<div class="no-logs">📝 No access logs found</div>';
+                        elements.filteredLogs.textContent = 0;
                         lastLogCount = 0;
                     }
                 } else {
@@ -724,6 +900,252 @@
                 .replace(/'/g, "&#039;");
         }
 
+        function performSearch() {
+            const searchTerm = elements.searchInput.value;
+            const caseSensitive = elements.caseSensitive.checked;
+            const regexSearch = elements.regexSearch.checked;
+            const postDataOnly = elements.postDataOnly.checked;
+            const simplifiedView = elements.simplifiedView.checked;
+            const excludeEnabled = elements.excludeEnabled.checked;
+            const excludeInput = elements.excludeInput.value;
+
+            currentSearchTerm = searchTerm;
+
+            // Start with all logs
+            let logsToFilter = [...allLogs];
+
+            // Apply exclude filter first if enabled
+            if (excludeEnabled && excludeInput.trim()) {
+                try {
+                    logsToFilter = logsToFilter.filter(log => {
+                        let excludeText = log;
+                        let excludePattern = excludeInput.trim();
+
+                        // Handle case sensitivity for exclude
+                        if (!caseSensitive) {
+                            excludeText = excludeText.toLowerCase();
+                            excludePattern = excludePattern.toLowerCase();
+                        }
+
+                        // Handle regex exclude
+                        if (regexSearch) {
+                            try {
+                                const regex = new RegExp(excludePattern, caseSensitive ? 'g' : 'gi');
+                                return !regex.test(excludeText); // Exclude if it matches
+                            } catch (e) {
+                                // Invalid regex, fall back to plain text exclude
+                                return !excludeText.includes(excludePattern);
+                            }
+                        } else {
+                            // Check for multiple exclude patterns separated by comma (OR logic)
+                            // Each pattern can also contain AND logic
+                            const excludePatterns = excludePattern.split(',').map(p => p.trim()).filter(p => p);
+                            return !excludePatterns.some(pattern => {
+                                // Check if this pattern contains AND logic
+                                if (pattern.includes(' AND ')) {
+                                    // Split by AND and check that ALL terms are present
+                                    const andTerms = pattern.split(' AND ').map(term => term.trim()).filter(term => term);
+                                    return andTerms.every(term => excludeText.includes(term));
+                                } else {
+                                    // Single term check
+                                    return excludeText.includes(pattern);
+                                }
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Exclude filter error:', error);
+                }
+            }
+
+            // Apply search filter
+            if (!searchTerm.trim()) {
+                // No search term, show filtered logs (after exclude)
+                filteredLogs = logsToFilter;
+                elements.searchResults.style.display = 'none';
+            } else {
+                try {
+                    filteredLogs = logsToFilter.filter(log => {
+                        // Filter by POST data only if option is checked
+                        if (postDataOnly && !log.includes('POST')) {
+                            return false;
+                        }
+
+                        let searchText = log;
+                        let searchPattern = searchTerm;
+
+                        // Handle case sensitivity
+                        if (!caseSensitive) {
+                            searchText = searchText.toLowerCase();
+                            searchPattern = searchPattern.toLowerCase();
+                        }
+
+                        // Handle regex search
+                        if (regexSearch) {
+                            try {
+                                const regex = new RegExp(searchPattern, caseSensitive ? 'g' : 'gi');
+                                return regex.test(searchText);
+                            } catch (e) {
+                                // Invalid regex, fall back to plain text search
+                                return searchText.includes(searchPattern);
+                            }
+                        } else {
+                            return searchText.includes(searchPattern);
+                        }
+                    });
+
+                    // Show search results info
+                    elements.searchResults.style.display = 'inline';
+                    elements.searchResults.textContent = `Found ${filteredLogs.length} matches`;
+                } catch (error) {
+                    console.error('Search error:', error);
+                    filteredLogs = logsToFilter;
+                    elements.searchResults.style.display = 'inline';
+                    elements.searchResults.textContent = 'Search error';
+                }
+            }
+
+            // Add exclude info to results
+            if (excludeEnabled && excludeInput.trim()) {
+                const excludedCount = allLogs.length - logsToFilter.length;
+                let currentResultsText = elements.searchResults.textContent;
+                
+                // Remove any existing excluded count information
+                if (currentResultsText) {
+                    currentResultsText = currentResultsText.replace(/\s*\(\d+\s+excluded\).*$/, '');
+                }
+                
+                elements.searchResults.style.display = 'inline';
+                if (currentResultsText && currentResultsText !== 'Search error' && currentResultsText.trim()) {
+                    elements.searchResults.textContent = `${currentResultsText} (${excludedCount} excluded)`;
+                } else {
+                    elements.searchResults.textContent = `${excludedCount} logs excluded`;
+                }
+            }
+
+            renderLogs();
+        }
+
+        function renderLogs() {
+            if (filteredLogs.length > 0) {
+                console.log('Rendering logs:', filteredLogs.length);
+                
+                elements.logsList.innerHTML = filteredLogs.map((log, index) => {
+                    const isSimplified = elements.simplifiedView.checked;
+                    
+                    // Get display text - either simplified or full log
+                    let displayLog = isSimplified ? simplifyLogEntry(log) : log;
+                    
+                    // Highlight search term in results
+                    if (currentSearchTerm && !elements.regexSearch.checked) {
+                        const flags = elements.caseSensitive.checked ? 'g' : 'gi';
+                        const regex = new RegExp(`(${escapeRegex(currentSearchTerm)})`, flags);
+                        displayLog = displayLog.replace(regex, '<mark style="background: #667eea; color: white; padding: 0.1rem 0.2rem; border-radius: 2px;">$1</mark>');
+                    }
+                    
+                    // Check if this is a POST data entry
+                    if (log.includes('POST_DATA:')) {
+                        console.log('Found POST_DATA entry:', log);
+                        const postDataMatch = log.match(/POST_DATA: (.+?) - IP: (.+?) - Data: (.+?) - UserAgent: (.+)/);
+                        if (postDataMatch) {
+                            const [, url, ip, postData, userAgent] = postDataMatch;
+                            const timestamp = log.match(/\[(.*?)\]/)?.[1] || 'Unknown';
+                            
+                            const badge = isSimplified ? '' : '<span class="post-data-badge">POST DATA</span>';
+                            const clickHint = isSimplified ? ' <span style="color: #17a2b8; font-size: 0.7rem;">🔍</span>' : '<div style="margin-top: 0.5rem; color: #17a2b8; font-size: 0.7rem;">🔍 Click to view POST data</div>';
+                            
+                            return `<div class="log-entry post-data${isSimplified ? ' simplified' : ''}" 
+                                         data-post-url="${escapeHtml(url)}" 
+                                         data-post-ip="${escapeHtml(ip)}" 
+                                         data-post-data="${escapeHtml(encodeURIComponent(postData))}" 
+                                         data-post-agent="${escapeHtml(encodeURIComponent(userAgent))}" 
+                                         data-post-timestamp="${escapeHtml(timestamp)}">
+                                ${badge}
+                                ${displayLog}${clickHint}
+                            </div>`;
+                        }
+                    }
+                    
+                    // Check if this is a regular POST request
+                    if (log.includes('"POST ')) {
+                        const postMatch = log.match(/"POST ([^"]+)"/);
+                        if (postMatch) {
+                            const badge = isSimplified ? '' : '<span class="post-data-badge">POST</span>';
+                            return `<div class="log-entry post-request${isSimplified ? ' simplified' : ''}">
+                                ${badge}
+                                ${displayLog}
+                            </div>`;
+                        }
+                    }
+                    
+                    // Regular log entry
+                    return `<div class="log-entry${isSimplified ? ' simplified' : ''}">${displayLog}</div>`;
+                }).join('');
+                
+                // Auto-scroll to bottom to show latest logs
+                elements.logsList.scrollTop = elements.logsList.scrollHeight;
+            } else if (currentSearchTerm) {
+                elements.logsList.innerHTML = '<div class="no-logs">🔍 No logs match your search criteria</div>';
+            } else {
+                elements.logsList.innerHTML = '<div class="no-logs">📝 No access logs found</div>';
+            }
+
+            // Update stats
+            elements.filteredLogs.textContent = filteredLogs.length;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function simplifyLogEntry(log) {
+            // Handle POST_DATA entries
+            if (log.includes('POST_DATA:')) {
+                const postDataMatch = log.match(/POST_DATA: (.+?) - IP: (.+?) - Data: (.+?) - UserAgent: (.+)/);
+                if (postDataMatch) {
+                    const [, url, ip, postData, userAgent] = postDataMatch;
+                    try {
+                        const parsedData = JSON.parse(postData);
+                        const dataStr = Object.entries(parsedData)
+                            .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+                            .join(', ');
+                        return `POST ${url} - {${dataStr}}`;
+                    } catch (e) {
+                        return `POST ${url} - ${postData}`;
+                    }
+                }
+            }
+
+            // Handle regular HTTP requests (Apache/Nginx common log format)
+            // Example: 192.168.1.1 - - [25/Dec/2023:10:00:00 +0000] "GET /api/user/2 HTTP/1.1" 200 1234 "-" "Mozilla/5.0..."
+            const httpMatch = log.match(/"(\w+)\s+([^\s]+)(?:\s+HTTP\/[\d.]+)?"/);
+            if (httpMatch) {
+                const [, method, path] = httpMatch;
+                return `${method} ${path}`;
+            }
+
+            // Handle other log formats - try to find method and path
+            const methodMatch = log.match(/\b(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+([^\s"]+)/);
+            if (methodMatch) {
+                const [, method, path] = methodMatch;
+                return `${method} ${path}`;
+            }
+
+            // If we can't parse it, return a shortened version
+            return log.length > 80 ? log.substring(0, 80) + '...' : log;
+        }
+
+        function clearSearch() {
+            elements.searchInput.value = '';
+            elements.caseSensitive.checked = false;
+            elements.regexSearch.checked = false;
+            elements.postDataOnly.checked = false;
+            elements.simplifiedView.checked = false;
+            elements.excludeInput.value = '';
+            elements.excludeEnabled.checked = false;
+            performSearch();
+        }
+
         function startAutoRefresh() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
@@ -758,6 +1180,24 @@
         // Event listeners
         elements.refreshBtn.addEventListener('click', handleManualRefresh);
         elements.autoRefreshToggle.addEventListener('click', toggleAutoRefresh);
+
+        // Search event listeners
+        elements.searchInput.addEventListener('input', performSearch);
+        elements.clearSearch.addEventListener('click', clearSearch);
+        elements.caseSensitive.addEventListener('change', performSearch);
+        elements.regexSearch.addEventListener('change', performSearch);
+        elements.postDataOnly.addEventListener('change', performSearch);
+        elements.simplifiedView.addEventListener('change', performSearch);
+        elements.excludeEnabled.addEventListener('change', performSearch);
+        elements.excludeInput.addEventListener('input', performSearch);
+
+        // Search keyboard shortcuts
+        elements.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                clearSearch();
+                elements.searchInput.blur();
+            }
+        });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
