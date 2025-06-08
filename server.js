@@ -303,7 +303,7 @@ app.post('/api/profile/update', async (req, res) => {
   }
 
   const session = sessions.get(sessionId);
-  const { username, email, currentPassword, newPassword } = req.body;
+  const { username, email, currentPassword, newPassword, role } = req.body;
 
   try {
     // Check if username is being changed and if it's already taken
@@ -320,8 +320,9 @@ app.post('/api/profile/update', async (req, res) => {
     }
 
     // Build update query based on what's being changed
-    let updateQuery = 'UPDATE users SET username = $1, email = $2';
-    const queryParams = [username, email];
+    // Vulnerable: Include role without any authorization check - allows privilege escalation
+    let updateQuery = 'UPDATE users SET username = $1, email = $2, role = $3';
+    const queryParams = [username, email, role || session.role];
     
     // If changing password, verify current password
     if (newPassword) {
@@ -335,7 +336,7 @@ app.post('/api/profile/update', async (req, res) => {
         });
       }
       
-      updateQuery += ', password = $3';
+      updateQuery += ', password = $4';
       queryParams.push(newPassword);
     }
     
@@ -372,11 +373,13 @@ app.get('/api/session', (req, res) => {
     pool.query('SELECT id, username, email, role, profile_image FROM users WHERE id = $1', [session.userId])
       .then(result => {
         if (result.rows.length > 0) {
+          const userData = result.rows[0];
           res.json({ 
             success: true, 
             user: {
               ...session,
-              profile_image: result.rows[0].profile_image
+              role: userData.role, // Include role from database
+              profile_image: userData.profile_image
             }
           });
         } else {
@@ -670,6 +673,174 @@ app.get('/api/user/:userId/image', async (req, res) => {
                 message: 'File not found'
             });
         }
+    } catch (error) {
+        // Vulnerable: Exposing detailed error information
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Vulnerable: Password reset endpoint without proper authorization checks
+app.put('/api/user/:userId/reset-password', async (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated'
+        });
+    }
+
+    try {
+        const session = sessions.get(sessionId);
+        const targetUserId = req.params.userId;
+        const { newPassword } = req.body;
+
+        // Get current user's role from database to ensure it's up-to-date
+        const userRoleQuery = 'SELECT role FROM users WHERE id = $1';
+        const userRoleResult = await pool.query(userRoleQuery, [session.userId]);
+        
+        if (userRoleResult.rows.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const currentUserRole = userRoleResult.rows[0].role;
+
+        // Vulnerable: Basic role check but no further authorization
+        // An admin can reset any user's password without knowing the current password
+        if (currentUserRole !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin privileges required'
+            });
+        }
+
+        // Vulnerable: No password complexity validation
+        if (!newPassword || newPassword.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'New password is required'
+            });
+        }
+
+        // Check if target user exists
+        const checkQuery = 'SELECT username FROM users WHERE id = $1';
+        const userCheck = await pool.query(checkQuery, [targetUserId]);
+        
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const username = userCheck.rows[0].username;
+
+        // Vulnerable: Password stored in plaintext (no hashing)
+        const updateQuery = 'UPDATE users SET password = $1 WHERE id = $2';
+        await pool.query(updateQuery, [newPassword, targetUserId]);
+
+        // Invalidate all sessions for the target user (force re-login)
+        for (const [key, value] of sessions.entries()) {
+            if (value.userId.toString() === targetUserId.toString()) {
+                sessions.delete(key);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Password reset successfully for user "${username}"`
+        });
+    } catch (error) {
+        // Vulnerable: Exposing detailed error information
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Vulnerable: Delete user endpoint without proper authorization checks
+app.delete('/api/user/:userId', async (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated'
+        });
+    }
+
+    try {
+        const session = sessions.get(sessionId);
+        const targetUserId = req.params.userId;
+
+        // Get current user's role from database to ensure it's up-to-date
+        const userRoleQuery = 'SELECT role FROM users WHERE id = $1';
+        const userRoleResult = await pool.query(userRoleQuery, [session.userId]);
+        
+        if (userRoleResult.rows.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const currentUserRole = userRoleResult.rows[0].role;
+
+        // Vulnerable: Basic role check but no further authorization
+        // An admin can delete any user, including other admins
+        if (currentUserRole !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin privileges required'
+            });
+        }
+
+        // Prevent users from deleting themselves
+        if (session.userId.toString() === targetUserId.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot delete yourself'
+            });
+        }
+
+        // Check if user exists
+        const checkQuery = 'SELECT username FROM users WHERE id = $1';
+        const userCheck = await pool.query(checkQuery, [targetUserId]);
+        
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const username = userCheck.rows[0].username;
+
+        // Delete related orders first (to maintain referential integrity)
+        await pool.query('DELETE FROM orders WHERE user_id = $1', [targetUserId]);
+        
+        // Delete the user
+        const deleteQuery = 'DELETE FROM users WHERE id = $1';
+        await pool.query(deleteQuery, [targetUserId]);
+
+        // Remove any active sessions for the deleted user
+        for (const [key, value] of sessions.entries()) {
+            if (value.userId.toString() === targetUserId.toString()) {
+                sessions.delete(key);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `User "${username}" deleted successfully`
+        });
     } catch (error) {
         // Vulnerable: Exposing detailed error information
         res.status(500).json({

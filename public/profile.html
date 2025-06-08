@@ -267,6 +267,7 @@
             <h1>User Profile</h1>
             <div class="nav-links">
                 <a href="/shop.html">Back to Shop</a>
+                <button ng-if="user.role === 'admin'" ng-click="goToAdmin()" style="background: linear-gradient(135deg, #28a745, #1e7e34); margin-right: 10px;">Admin Panel</button>
                 <button ng-click="logout()">Logout</button>
             </div>
         </div>

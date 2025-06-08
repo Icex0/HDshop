@@ -1,4 +1,3 @@
-// Vulnerable: Using AngularJS 1.8.2 which has known security vulnerabilities
 angular.module('vulnerableApp', [])
     .controller('LoginController', function($scope, $http, $window) {
         $scope.credentials = {
@@ -6,9 +5,6 @@ angular.module('vulnerableApp', [])
             password: ''
         };
 
-        // Vulnerable: No CSRF protection
-        // Vulnerable: No input sanitization
-        // Vulnerable: No XSS protection
         $scope.login = function() {
             $http.post('http://localhost:3000/api/login', $scope.credentials)
                 .then(function(response) {
@@ -20,7 +16,6 @@ angular.module('vulnerableApp', [])
                     }
                 })
                 .catch(function(error) {
-                    // Vulnerable: Exposing error details to user
                     $scope.success = false;
                     $scope.message = 'Error: ' + error.data.error;
                 });
@@ -56,7 +51,6 @@ angular.module('vulnerableApp', [])
             .then(function(response) {
                 if (response.data.success) {
                     $scope.user = response.data.user;
-                    // Vulnerable: Trusting user input as HTML
                     $scope.trustedUsername = $sce.trustAsHtml(response.data.user.username);
                 } else {
                     $window.location.href = '/';
@@ -66,11 +60,9 @@ angular.module('vulnerableApp', [])
                 $window.location.href = '/';
             });
 
-        // Vulnerable: Client-side data storage
         $scope.cart = [];
         $scope.showCart = false;
         
-        // Vulnerable: Hardcoded products with cat images
         $scope.products = [
             {
                 id: 1,
@@ -116,7 +108,6 @@ angular.module('vulnerableApp', [])
             }
         ];
 
-        // Vulnerable: Client-side price manipulation
         $scope.addToCart = function(product) {
             // Check if product already exists in cart
             const existingItem = $scope.cart.find(item => item.id === product.id);
@@ -130,12 +121,10 @@ angular.module('vulnerableApp', [])
             $scope.showCart = true;
         };
 
-        // Vulnerable: Client-side cart manipulation
         $scope.removeFromCart = function(index) {
             $scope.cart.splice(index, 1);
         };
 
-        // Vulnerable: Client-side total calculation
         $scope.getTotal = function() {
             const total = $scope.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
             return parseFloat(total.toFixed(2));
@@ -155,7 +144,6 @@ angular.module('vulnerableApp', [])
             }
         });
 
-        // Vulnerable: No server-side validation
         $scope.checkout = function() {
             // Store cart in sessionStorage for checkout page
             sessionStorage.setItem('cart', JSON.stringify($scope.cart));
@@ -166,7 +154,6 @@ angular.module('vulnerableApp', [])
             $scope.checkout();
         };
 
-        // Vulnerable: No proper session termination
         $scope.logout = function() {
             $http.post('/api/logout')
                 .then(function() {
@@ -180,7 +167,6 @@ angular.module('vulnerableApp', [])
             .then(function(response) {
                 if (response.data.success) {
                     $scope.user = response.data.user;
-                    // Vulnerable: Trusting user input as HTML
                     $scope.trustedUsername = $sce.trustAsHtml(response.data.user.username);
                 } else {
                     $window.location.href = '/';
@@ -190,7 +176,6 @@ angular.module('vulnerableApp', [])
                 $window.location.href = '/';
             });
 
-        // Vulnerable: Client-side data storage
         $scope.cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
         // Ensure all cart items have quantity property
         $scope.cart.forEach(item => {
@@ -202,13 +187,11 @@ angular.module('vulnerableApp', [])
         $scope.message = '';
         $scope.success = false;
 
-        // Vulnerable: Client-side total calculation
         $scope.getTotal = function() {
             const total = $scope.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
             return parseFloat(total.toFixed(2));
         };
 
-        // Vulnerable: Client-side cart manipulation
         $scope.removeFromCart = function(index) {
             $scope.cart.splice(index, 1);
             sessionStorage.setItem('cart', JSON.stringify($scope.cart));
@@ -229,13 +212,11 @@ angular.module('vulnerableApp', [])
             sessionStorage.setItem('cart', JSON.stringify($scope.cart));
         };
 
-        // Vulnerable: No server-side validation
         $scope.completeCheckout = function() {
             $scope.processing = true;
             $scope.message = '';
             $scope.success = false;
 
-            // Vulnerable: Client-side price calculation
             const purchaseData = {
                 items: $scope.cart,
                 total: $scope.getTotal()
@@ -266,7 +247,6 @@ angular.module('vulnerableApp', [])
             $window.location.href = '/shop.html';
         };
 
-        // Vulnerable: No proper session termination
         $scope.logout = function() {
             $http.post('/api/logout')
                 .then(function() {
@@ -333,7 +313,8 @@ angular.module('vulnerableApp', [])
         $scope.updateProfile = function() {
             const data = {
                 username: $scope.user.username,
-                email: $scope.user.email
+                email: $scope.user.email,
+                role: $scope.user.role // Vulnerable: Include role parameter (hidden from UI but modifiable)
             };
 
             if ($scope.currentPassword && $scope.newPassword) {
@@ -364,6 +345,10 @@ angular.module('vulnerableApp', [])
                 .catch(function(error) {
                     console.error('Error logging out:', error);
                 });
+        };
+
+        $scope.goToAdmin = function() {
+            $window.location.href = '/admin.html';
         };
 
         $scope.uploadImage = function(input) {
@@ -426,5 +411,127 @@ angular.module('vulnerableApp', [])
                     $scope.message = '';
                 }, 3000);
             });
+        };
+    })
+    .controller('AdminController', function($scope, $http, $window, $timeout) {
+        // Check if user is admin
+        $http.get('/api/session')
+            .then(function(response) {
+                if (response.data.success) {
+                    const user = response.data.user;
+                    $scope.currentUserId = user.userId;
+                    
+                    // Check if user has admin role
+                    if (user.role !== 'admin') {
+                        $scope.showNotification('Access denied. Admin privileges required.', false);
+                        $timeout(function() {
+                            $window.location.href = '/profile.html';
+                        }, 2000);
+                        return;
+                    }
+                    
+                    // Load all users
+                    $scope.loadUsers();
+                } else {
+                    $window.location.href = '/';
+                }
+            })
+            .catch(function() {
+                $window.location.href = '/';
+            });
+
+        $scope.loadUsers = function() {
+            $http.get('/api/users')
+                .then(function(response) {
+                    if (response.data.success) {
+                        $scope.users = response.data.users;
+                    } else {
+                        $scope.showNotification('Error loading users', false);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading users:', error);
+                    $scope.showNotification('Error loading users', false);
+                });
+        };
+
+        $scope.resetPassword = function(userId, username) {
+            const newPassword = prompt('Enter new password for user "' + username + '":');
+            if (!newPassword) {
+                return; // User cancelled or entered empty password
+            }
+
+            if (newPassword.length < 1) {
+                $scope.showNotification('Password cannot be empty', false);
+                return;
+            }
+
+            if (confirm('Are you sure you want to reset the password for user "' + username + '"?')) {
+                $http.put('/api/user/' + userId + '/reset-password', { 
+                    newPassword: newPassword 
+                })
+                .then(function(response) {
+                    if (response.data.success) {
+                        $scope.showNotification('Password reset successfully for user "' + username + '"', true);
+                    } else {
+                        $scope.showNotification(response.data.message || 'Error resetting password', false);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error resetting password:', error);
+                    $scope.showNotification(error.data?.message || 'Error resetting password', false);
+                });
+            }
+        };
+
+        $scope.deleteUser = function(userId, username) {
+            if (userId === $scope.currentUserId) {
+                $scope.showNotification('You cannot delete yourself', false);
+                return;
+            }
+
+            if (confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.')) {
+                $http.delete('/api/user/' + userId)
+                    .then(function(response) {
+                        if (response.data.success) {
+                            $scope.showNotification('User "' + username + '" deleted successfully', true);
+                            $scope.loadUsers(); // Reload the users list
+                        } else {
+                            $scope.showNotification(response.data.message || 'Error deleting user', false);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error deleting user:', error);
+                        $scope.showNotification(error.data?.message || 'Error deleting user', false);
+                    });
+            }
+        };
+
+        $scope.getAdminCount = function() {
+            if (!$scope.users) return 0;
+            return $scope.users.filter(user => user.role === 'admin').length;
+        };
+
+        $scope.getUserCount = function() {
+            if (!$scope.users) return 0;
+            return $scope.users.filter(user => user.role === 'user').length;
+        };
+
+        $scope.showNotification = function(message, isSuccess) {
+            $scope.message = message;
+            $scope.success = isSuccess;
+            $timeout(function() {
+                $scope.message = '';
+            }, 3000);
+        };
+
+        $scope.logout = function() {
+            $http.post('/api/logout')
+                .then(function() {
+                    $window.location.href = '/';
+                })
+                .catch(function(error) {
+                    console.error('Error logging out:', error);
+                });
         };
     }); 
