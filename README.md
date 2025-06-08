@@ -24,7 +24,8 @@
 - 🔓 Change user settings without requiring current password
 - 🔓 Passwords stored in plaintext
 - 🔓 Default credentials > Postgres and webapp
-
+- 🔓 Weak (client side only) upload restrictions > SVG upload with SXSS etc. 
+- 🔓 Simple Identifiers (no UUIDv4)
 
 ---
 
