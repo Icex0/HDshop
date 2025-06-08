@@ -55,7 +55,7 @@
 - 🛠️ **CSRF (Cross-Site Request Forgery) on any request**
   - There are no anti-CSRF tokens and the session cookie has SameSite none
 - 📂 **LFI - Local file inclusion**
-  - API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
+  - Legacy API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
 - ⚠️SSRF (Server-Side Request Forgery)
   - Fetch profile image from URL
