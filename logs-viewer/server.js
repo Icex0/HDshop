@@ -18,6 +18,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Middleware to prevent caching on all API endpoints
+// This ensures all API responses return 200 OK instead of 304 Not Modified
+app.use('/api', (req, res, next) => {
+    res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+    });
+    next();
+});
+
 // Endpoint to fetch logs from the main application
 app.get('/api/logs', async (req, res) => {
     try {

@@ -15,6 +15,7 @@
     "crypto": "^1.0.1",
     "express": "^4.17.1",
     "morgan": "^1.10.0",
+    "multer": "^2.0.1",
     "pg": "^8.7.1",
     "swagger-ui-dist": "3.25.0",
     "swagger-ui-express": "4.0.7"

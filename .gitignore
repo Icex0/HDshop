@@ -24,3 +24,4 @@ yarn-error.log
 ehthumbs.db
 Thumbs.db 
 /public/uploads
+logs/access.log

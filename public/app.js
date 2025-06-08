@@ -285,6 +285,20 @@ angular.module('vulnerableApp', [])
                     $http.get('/api/user/' + userId)
                         .then(function(response) {
                             $scope.user = response.data.user;
+                            
+                            // Also call the image endpoint (for LFI testing)
+                            // If no profile image, leave file parameter empty
+                            const fileParam = $scope.user.profile_image ? '' : '';
+                            $http.get('/api/user/' + userId + '/image?file=' + fileParam)
+                                .then(function(imageResponse) {
+                                    // This call is just for demonstration/testing
+                                    // The actual image display uses the existing profile_image field
+                                    console.log('Image endpoint called successfully');
+                                })
+                                .catch(function(imageError) {
+                                    // Silently fail - this is just for testing purposes
+                                    console.log('Image endpoint call failed (expected for empty profiles)');
+                                });
                         })
                         .catch(function(error) {
                             console.error('Error fetching user data:', error);

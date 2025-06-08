@@ -48,6 +48,18 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+// Middleware to prevent caching on all API endpoints
+// This ensures all API responses return 200 OK instead of 304 Not Modified
+app.use('/api', (req, res, next) => {
+    res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+    });
+    next();
+});
+
 // Custom middleware to capture POST request bodies for logging
 // IMPORTANT: This must come AFTER bodyParser.json() so req.body is available
 app.use((req, res, next) => {
@@ -400,13 +412,6 @@ app.get('/api/user/:userId', async (req, res) => {
     });
   }
 
-  // Prevent caching to avoid 304 Not Modified responses
-  res.set({
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0'
-  });
-
   try {
     // Vulnerable: No authorization check - allows fetching any user's data
     const query = 'SELECT id, username, email, role, profile_image FROM users WHERE id = $1';
@@ -563,6 +568,105 @@ app.post('/api/user/:userId/image', upload.single('profileImage'), async (req, r
         res.status(500).json({
             success: false,
             error: error.message
+        });
+    }
+});
+
+// Vulnerable: Profile image retrieval endpoint with LFI vulnerability
+app.get('/api/user/:userId/image', async (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated'
+        });
+    }
+
+    try {
+        // Get the image path from query parameter or database
+        let imagePath = req.query.file;
+        
+        if (!imagePath || imagePath.trim() === '') {
+            // If no file provided or empty, get from database
+            const query = 'SELECT profile_image FROM users WHERE id = $1';
+            const result = await pool.query(query, [req.params.userId]);
+            
+            if (result.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
+            
+            imagePath = result.rows[0].profile_image;
+        }
+
+        if (!imagePath || imagePath.trim() === '') {
+            return res.status(404).json({
+                success: false,
+                message: 'No profile image found'
+            });
+        }
+
+        // Vulnerable: Direct file path construction without validation
+        // This allows LFI attacks like ../../../../../../etc/passwd
+        let fullPath;
+        if (imagePath.startsWith('/')) {
+            // Absolute path from database
+            fullPath = path.join(__dirname, 'public', imagePath);
+        } else {
+            // Relative path from query parameter - VULNERABLE TO LFI
+            fullPath = path.join(__dirname, 'public', 'uploads', imagePath);
+        }
+
+        // Vulnerable: No path validation or sanitization
+        // This allows traversal attacks
+        console.log('Attempting to read file:', fullPath);
+
+        // Check if file exists and read it
+        if (fs.existsSync(fullPath)) {
+            const fileStats = fs.statSync(fullPath);
+            if (fileStats.isFile()) {
+                // Set appropriate content type based on file extension
+                const ext = path.extname(fullPath).toLowerCase();
+                let contentType = 'application/octet-stream';
+                
+                if (ext === '.jpg' || ext === '.jpeg') {
+                    contentType = 'image/jpeg';
+                } else if (ext === '.png') {
+                    contentType = 'image/png';
+                } else if (ext === '.gif') {
+                    contentType = 'image/gif';
+                } else if (ext === '.svg') {
+                    contentType = 'image/svg+xml';
+                } else {
+                    // For non-image files (like /etc/passwd), return as plain text
+                    contentType = 'text/plain';
+                }
+
+                res.setHeader('Content-Type', contentType);
+                
+                // Read and send the file
+                const fileContent = fs.readFileSync(fullPath);
+                res.send(fileContent);
+            } else {
+                res.status(400).json({
+                    success: false,
+                    message: 'Path is not a file'
+                });
+            }
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'File not found'
+            });
+        }
+    } catch (error) {
+        // Vulnerable: Exposing detailed error information
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
         });
     }
 });

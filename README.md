@@ -56,9 +56,9 @@
 
 ![logging app](./images/log-monitor.png)
 
-![profile](./images/profile.png)
-
 ![hdshop](./images/shop.png)
+
+![profile](./images/profile.png)
 
 ## TODO:
 
