@@ -21,6 +21,8 @@
 - 🧮 **Logic Bugs**
   - No server-side validation on product pricing
 - ❌ Verbose errors in production
+- 🔓 Change user settings without requiring current password
+
 ---
 
 ## TODO:
