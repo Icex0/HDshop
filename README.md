@@ -20,7 +20,7 @@
   - Passwords and API keys present in `config.json`
 - 🧮 **Logic Bugs**
   - No server-side validation on product pricing
-
+- ❌ Verbose errors in production
 ---
 
 ## TODO:
@@ -33,6 +33,7 @@
 - 🔒 **Weak TLS Support**
   - TLS 1.0/1.1 still enabled
 - 📚 **Outdated Swagger UI**
+  - Reflected XSS
   - API endpoint for profile image retrieval > **LFI**
-- 🤔 **Potential CSTI or XXE**
+- 🤔 **Add CSTI or XXE?**
 ---
