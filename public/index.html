@@ -12,49 +12,98 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
         }
         .login-container {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 300px;
+            background: #2a2a3e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 350px;
+            border: 1px solid #404060;
+        }
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 25px;
+            font-size: 28px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0c0;
+            font-weight: bold;
         }
         input {
             width: 100%;
-            padding: 8px;
+            padding: 12px;
             margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 2px solid #404060;
+            border-radius: 6px;
             box-sizing: border-box;
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+        input::placeholder {
+            color: #7a7a90;
         }
         button {
             width: 100%;
-            padding: 10px;
-            background-color: #007bff;
+            padding: 12px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
         }
         .register-link {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         .register-link a {
             color: #007bff;
             text-decoration: none;
+            font-weight: bold;
         }
         .register-link a:hover {
+            color: #0056b3;
             text-decoration: underline;
+        }
+        p {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success-message {
+            background-color: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+        .error-message {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
         }
     </style>
 </head>
@@ -72,7 +121,7 @@
             </div>
             <button type="submit">Login</button>
         </form>
-        <p ng-if="message" style="color: {{success ? 'green' : 'red'}}">{{message}}</p>
+        <p ng-if="message" ng-class="{'success-message': success, 'error-message': !success}">{{message}}</p>
         <div class="register-link">
             Don't have an account? <a href="/register.html">Create one here</a>
         </div>

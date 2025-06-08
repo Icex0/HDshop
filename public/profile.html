@@ -9,21 +9,30 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
         }
         .profile-container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: #2a2a3e;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #404060;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #404060;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
         }
         .header .nav-links {
             display: flex;
@@ -34,75 +43,101 @@
         .header .nav-links a {
             color: #007bff;
             text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
         }
         .header .nav-links a:hover {
+            color: #0056b3;
             text-decoration: underline;
         }
         .header button {
-            background-color: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
         .header button:hover {
-            background-color: #c82333;
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #b0b0c0;
         }
         input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px;
+            border: 2px solid #404060;
+            border-radius: 6px;
             box-sizing: border-box;
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+        input::placeholder {
+            color: #7a7a90;
         }
         button {
-            padding: 8px 16px;
-            background-color: #007bff;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
         }
         .order-history {
             margin-top: 40px;
-            border-top: 2px solid #eee;
+            border-top: 2px solid #404060;
             padding-top: 20px;
         }
+        .order-history h2 {
+            color: #ffffff;
+        }
         .order-card {
-            background: #f8f9fa;
-            border-radius: 5px;
+            background: #333344;
+            border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
+            border: 1px solid #404060;
         }
         .order-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #404060;
         }
         .order-id {
             font-weight: bold;
             color: #007bff;
         }
         .order-date {
-            color: #6c757d;
+            color: #b0b0c0;
         }
         .order-total {
             font-weight: bold;
@@ -120,7 +155,7 @@
             width: 50px;
             height: 50px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-right: 10px;
         }
         .order-item-details {
@@ -129,15 +164,19 @@
         .order-item-name {
             font-weight: bold;
             margin: 0;
+            color: #ffffff;
         }
         .order-item-price {
-            color: #6c757d;
+            color: #28a745;
             margin: 0;
         }
         .no-orders {
             text-align: center;
             padding: 20px;
-            color: #6c757d;
+            color: #b0b0c0;
+            background: #333344;
+            border-radius: 10px;
+            border: 1px solid #404060;
         }
         .notification {
             position: fixed;
@@ -145,20 +184,22 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 15px 25px;
-            border-radius: 4px;
+            border-radius: 6px;
             color: white;
             font-weight: bold;
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
             min-width: 200px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         .notification.error {
-            background-color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.9);
+            border: 1px solid #dc3545;
         }
         .notification.success {
-            background-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.9);
+            border: 1px solid #28a745;
         }
         @keyframes slideIn {
             from {
@@ -200,17 +241,19 @@
         }
         .profile-image label {
             display: inline-block;
-            padding: 8px 16px;
-            background-color: #007bff;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
             font-size: 14px;
             font-weight: bold;
         }
         .profile-image label:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
         }
     </style>
 </head>

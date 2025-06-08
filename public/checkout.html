@@ -9,21 +9,30 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
         }
         .checkout-container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: #2a2a3e;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #404060;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #404060;
+        }
+        h1 {
+            color: #ffffff;
+            margin: 0;
         }
         .user-info {
             display: flex;
@@ -54,22 +63,26 @@
             color: #007bff;
             text-decoration: none;
             font-weight: bold;
+            transition: color 0.3s ease;
         }
         .profile-link:hover {
+            color: #0056b3;
             text-decoration: underline;
         }
         .logout-btn {
-            background-color: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 8px 15px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
         .logout-btn:hover {
-            background-color: #c82333;
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
         .cart-items {
             margin-bottom: 30px;
@@ -78,95 +91,132 @@
             display: flex;
             align-items: center;
             margin-bottom: 15px;
+            background: #333344;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #404060;
         }
         .cart-item img {
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-right: 15px;
         }
         .item-details {
             flex: 1;
         }
+        .item-details h3 {
+            color: #ffffff;
+            margin: 0 0 5px 0;
+        }
+        .item-details p {
+            color: #b0b0c0;
+            margin: 0;
+        }
         .item-price {
             font-weight: bold;
             margin-right: 20px;
+            color: #28a745;
+            font-size: 1.1em;
         }
         .remove-btn {
-            background-color: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 8px 12px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
         .remove-btn:hover {
-            background-color: #c82333;
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
         }
         .order-summary {
-            background: #f8f9fa;
+            background: #333344;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 10px;
             margin-top: 20px;
+            border: 1px solid #404060;
+        }
+        .order-summary h2 {
+            color: #ffffff;
+            margin-top: 0;
         }
         .total {
             font-size: 1.2em;
             font-weight: bold;
             margin-top: 10px;
             padding-top: 10px;
-            border-top: 2px solid #dee2e6;
+            border-top: 2px solid #404060;
+            color: #28a745;
         }
         button {
-            padding: 10px 20px;
-            background-color: #007bff;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             margin-right: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
         }
         .back-btn {
-            background-color: #6c757d;
+            background: linear-gradient(135deg, #6c757d, #5a6268);
         }
         .back-btn:hover {
-            background-color: #5a6268;
+            background: linear-gradient(135deg, #5a6268, #495057);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
         }
         .checkout-btn {
-            background-color: #28a745;
+            background: linear-gradient(135deg, #28a745, #218838);
         }
         .checkout-btn:hover {
-            background-color: #218838;
+            background: linear-gradient(135deg, #218838, #1e7e34);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
         }
         .empty-cart {
             text-align: center;
             padding: 40px;
-            color: #6c757d;
+            color: #b0b0c0;
+            background: #333344;
+            border-radius: 10px;
+            border: 1px solid #404060;
+        }
+        .empty-cart h2 {
+            color: #ffffff;
         }
         .message {
             margin: 20px 0;
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             text-align: center;
+            font-weight: bold;
         }
         .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid #28a745;
         }
         .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid #dc3545;
         }
         .checkout-btn:disabled {
-            background-color: #6c757d;
+            background: #6c757d;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .quantity-controls {
             display: flex;
@@ -175,22 +225,25 @@
             margin-right: 15px;
         }
         .quantity-btn {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 5px 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
         .quantity-btn:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
         }
         .quantity-display {
             font-weight: bold;
             min-width: 30px;
             text-align: center;
+            color: #ffffff;
         }
     </style>
 </head>
