@@ -41,8 +41,17 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-// Using default CORS settings
-app.use(cors());
+// Vulnerable CORS configuration
+app.use(cors({
+    origin: function (origin, callback) {
+        // Vulnerable: Allow any origin that makes the request
+        // This echoes back whatever origin the client sends
+        callback(null, origin || '*');
+    },
+    credentials: true, // Vulnerable: Access-Control-Allow-Credentials set to true
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+}));
 
 // No input validation middleware
 app.use(bodyParser.json());
