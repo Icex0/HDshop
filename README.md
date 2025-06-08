@@ -47,17 +47,18 @@
 - 🧾 **Default credentials > Postgres and webapp**
 - 📤 **Weak (client-side only) upload restrictions > SVG upload with XSS etc.**
 - 🆔 **Simple Identifiers (no UUIDv4)**
-- 🛡️ **Vulnerable CORS configuration on APIs**
-  - Access-Control-Allow-Crendentials (ACAC) on true
-  - Origin can be set by user
+- 🛡️ **Vulnerable CORS configuration on all (API) endpoints**
+  - Access-Control-Allow-Crendentials (ACAC) on true > Access-Control-Allow-Credentials: true
+  - Origin (Origin: attacker.com) dynamically set by user request > Access-Control-Allow-Origin: attacker.com
 - ⚠️ **Outdated Swagger-UI (3.25.0) leads to XSS**
   - Example: http://localhost:3000/api-docs/?configUrl=https://xss.smarpo.com/test.json
 - 🛠️ **CSRF (Cross-Site Request Forgery) on any request**
   - There are no anti-CSRF tokens and the session cookie has SameSite none
 - 📂 **LFI - Local file inclusion**
-  - API endpoint for profile image retrieval > `GET /api/user/2/image?file=../../../etc/passwd`
+  - API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
-
+- ⚠️SSRF (Server-Side Request Forgery)
+  - Fetch profile image from URL
 ---
 
 ![logging app](./images/log-monitor.png)
@@ -71,5 +72,4 @@
 - **Reflected XSS in parameter**
 - **CSTI**
 - **Open redirect**
-- **SSRF**
 ---
