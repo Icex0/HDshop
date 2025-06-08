@@ -5,7 +5,7 @@
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL
-  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint)
+  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint /api/user/<ID>/image)
   - access.log persisted in Docker volume `hdapp_app_logs` (or use the log monitor app)
 - Log monitor application at port `3050` (you can filter for requests etc)
   - Includes 2 API endpoints:
@@ -55,7 +55,7 @@
 - 🛠️ **CSRF (Cross-Site Request Forgery) on any request**
   - There are no anti-CSRF tokens and the session cookie has SameSite none
 - 📂 **LFI - Local file inclusion**
-  - API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../etc/passwd`
+  - API endpoint for profile image retrieval > `GET /api/user/2/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
 
 ---
@@ -68,7 +68,7 @@
 
 ## TODO:
 
-- **Reflected XSS in   parameter**
+- **Reflected XSS in parameter**
 - **CSTI**
 - **Open redirect**
 - **SSRF**
