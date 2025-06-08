@@ -17,6 +17,21 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - app_logs:/app/logs
+    networks:
+      - app-network
+
+  logs-viewer:
+    build:
+      context: ./logs-viewer
+      dockerfile: Dockerfile
+    ports:
+      - "3050:3050"
+    environment:
+      - NODE_ENV=development
+      - MAIN_APP_URL=http://app:3000
+    depends_on:
+      - app
     networks:
       - app-network
 
@@ -36,6 +51,7 @@ services:
 
 volumes:
   postgres_data:
+  app_logs:
 
 networks:
   app-network:

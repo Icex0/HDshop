@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Log Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            border-bottom: 2px solid #404060;
+            padding: 1rem 2rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header h1::before {
+            content: "🔍";
+            font-size: 1.5rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .connection-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-connected {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .status-disconnected {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .logs-container {
+            background: rgba(42, 42, 62, 0.95);
+            border: 1px solid #404060;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logs-header h2 {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background: #333;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .logs-info {
+            margin-bottom: 1.5rem;
+            color: #b0b0b0;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logs-stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .logs-list {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
+            border-radius: 8px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .log-entry {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+
+        .log-entry:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .log-entry.post-request {
+            border-left-color: #ffc107;
+            cursor: pointer;
+        }
+
+        .log-entry.post-request:hover {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .log-entry.post-data {
+            border-left-color: #17a2b8;
+            background: rgba(23, 162, 184, 0.1);
+            cursor: pointer;
+        }
+
+        .log-entry.post-data:hover {
+            background: rgba(23, 162, 184, 0.2);
+        }
+
+        .log-entry.new {
+            animation: slideIn 0.5s ease;
+            border-left-color: #28a745;
+        }
+
+        .post-data-badge {
+            display: inline-block;
+            background: #17a2b8;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+            font-weight: bold;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+            margin: 3% auto;
+            padding: 2rem;
+            border: 1px solid #404060;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #404060;
+        }
+
+        .modal-header h3 {
+            color: #ffffff;
+            font-size: 1.4rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-header h3::before {
+            content: "📋";
+            font-size: 1.2rem;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            padding: 0.3rem;
+            border-radius: 4px;
+        }
+
+        .close:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .post-data-content {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #e0e0e0;
+        }
+
+        .data-section {
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #404060;
+        }
+
+        .section-header {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-content {
+            padding: 1rem;
+        }
+
+        .data-field {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .data-field:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .field-label {
+            color: #17a2b8;
+            font-weight: bold;
+            text-align: right;
+            padding-right: 0.5rem;
+            border-right: 2px solid #17a2b8;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .field-value {
+            color: #ffffff;
+            word-break: break-word;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .json-container {
+            margin-top: 1rem;
+        }
+
+        .json-label {
+            color: #17a2b8;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .json-value {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1rem;
+            white-space: pre-wrap;
+            color: #e0e0e0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .highlight-value {
+            background: linear-gradient(45deg, rgba(23, 162, 184, 0.1), rgba(19, 132, 150, 0.1));
+            border: 1px solid rgba(23, 162, 184, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message, .loading, .no-logs {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .loading {
+            color: #667eea;
+        }
+
+        .no-logs {
+            color: #b0b0b0;
+            font-style: italic;
+        }
+
+        /* Enhanced scrollbar */
+        .logs-list::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .logs-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .logs-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 6px;
+        }
+
+        .logs-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #5a6fd8, #6a42a0);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .logs-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            .logs-info {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .logs-stats {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>Security Log Monitor</h1>
+            <div class="status-indicator">
+                <div class="connection-status" id="connectionStatus">
+                    <div class="status-dot"></div>
+                    <span>Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="logs-container">
+            <div class="logs-header">
+                <h2>HTTP Access Logs</h2>
+                <div class="controls">
+                    <div class="auto-refresh-toggle">
+                        <span>Auto-refresh</span>
+                        <div class="toggle-switch" id="autoRefreshToggle"></div>
+                    </div>
+                    <button class="refresh-btn" id="refreshBtn">
+                        <span>🔄</span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="logs-info">
+                <div id="logsInfo">Connecting to log service...</div>
+                <div class="logs-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalLogs">0</div>
+                        <div>Total Logs</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lastUpdate">Never</div>
+                        <div>Last Update</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="logs-list" id="logsList">
+                <div class="loading">🔍 Connecting to log service...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="postDataModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>POST Data</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="post-data-content">
+                <!-- POST data content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval;
+        let isAutoRefreshEnabled = true;
+        let lastLogCount = 0;
+        let isLoading = false; // Prevent multiple simultaneous requests
+
+        const elements = {
+            connectionStatus: document.getElementById('connectionStatus'),
+            logsInfo: document.getElementById('logsInfo'),
+            logsList: document.getElementById('logsList'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            autoRefreshToggle: document.getElementById('autoRefreshToggle'),
+            totalLogs: document.getElementById('totalLogs'),
+            lastUpdate: document.getElementById('lastUpdate')
+        };
+
+        async function loadLogs() {
+            // Prevent multiple simultaneous requests
+            if (isLoading) {
+                console.log('Load already in progress, skipping...');
+                return;
+            }
+
+            isLoading = true;
+            
+            try {
+                // Update button state
+                elements.refreshBtn.style.opacity = '0.6';
+                elements.refreshBtn.disabled = true;
+                
+                console.log('Fetching logs...');
+                const response = await fetch('/api/logs');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (data.success) {
+                    updateConnectionStatus(true);
+                    elements.logsInfo.textContent = `Showing ${data.total} recent log entries`;
+                    elements.totalLogs.textContent = data.total;
+                    elements.lastUpdate.textContent = new Date().toLocaleTimeString();
+                    
+                    if (data.logs && data.logs.length > 0) {
+                        const newLogCount = data.logs.length;
+                        const hasNewLogs = newLogCount > lastLogCount;
+                        
+                        console.log('Processing logs:', data.logs.length);
+                        
+                        elements.logsList.innerHTML = data.logs.map((log, index) => {
+                            const isNew = hasNewLogs && index >= lastLogCount;
+                            
+                            // Check if this is a POST data entry
+                            if (log.includes('POST_DATA:')) {
+                                console.log('Found POST_DATA entry:', log);
+                                const postDataMatch = log.match(/POST_DATA: (.+?) - IP: (.+?) - Data: (.+?) - UserAgent: (.+)/);
+                                if (postDataMatch) {
+                                    const [, url, ip, postData, userAgent] = postDataMatch;
+                                    const timestamp = log.match(/\[(.*?)\]/)?.[1] || 'Unknown';
+                                    
+                                    console.log('Parsed POST data:', { url, ip, postData, userAgent, timestamp });
+                                    
+                                    return `<div class="log-entry post-data ${isNew ? 'new' : ''}" 
+                                                 data-post-url="${escapeHtml(url)}" 
+                                                 data-post-ip="${escapeHtml(ip)}" 
+                                                 data-post-data="${escapeHtml(encodeURIComponent(postData))}" 
+                                                 data-post-agent="${escapeHtml(encodeURIComponent(userAgent))}" 
+                                                 data-post-timestamp="${escapeHtml(timestamp)}">
+                                        <span class="post-data-badge">POST DATA</span>
+                                        ${escapeHtml(`${timestamp} - ${url} - IP: ${ip}`)}
+                                        <div style="margin-top: 0.5rem; color: #17a2b8; font-size: 0.7rem;">🔍 Click to view POST data</div>
+                                    </div>`;
+                                } else {
+                                    console.log('POST_DATA entry did not match regex:', log);
+                                }
+                            }
+                            
+                            // Check if this is a regular POST request
+                            if (log.includes('"POST ')) {
+                                const postMatch = log.match(/"POST ([^"]+)"/);
+                                if (postMatch) {
+                                    return `<div class="log-entry post-request ${isNew ? 'new' : ''}">
+                                        <span class="post-data-badge">POST</span>
+                                        ${escapeHtml(log)}
+                                    </div>`;
+                                }
+                            }
+                            
+                            // Regular log entry
+                            return `<div class="log-entry ${isNew ? 'new' : ''}">${escapeHtml(log)}</div>`;
+                        }).join('');
+                        
+                        lastLogCount = newLogCount;
+                        
+                        // Auto-scroll to bottom to show latest logs
+                        elements.logsList.scrollTop = elements.logsList.scrollHeight;
+                    } else {
+                        elements.logsList.innerHTML = '<div class="no-logs">📝 No access logs found</div>';
+                        lastLogCount = 0;
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to load logs');
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+                console.error('Error loading logs:', error);
+                elements.logsList.innerHTML = `<div class="error-message">⚠️ ${error.message}</div>`;
+                elements.logsInfo.textContent = 'Failed to load logs';
+                elements.totalLogs.textContent = '—';
+                elements.lastUpdate.textContent = 'Error';
+            } finally {
+                // Always restore button state
+                elements.refreshBtn.style.opacity = '1';
+                elements.refreshBtn.disabled = false;
+                isLoading = false;
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = elements.connectionStatus;
+            if (connected) {
+                status.className = 'connection-status status-connected';
+                status.innerHTML = '<div class="status-dot"></div><span>Connected</span>';
+            } else {
+                status.className = 'connection-status status-disconnected';
+                status.innerHTML = '<div class="status-dot"></div><span>Disconnected</span>';
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            autoRefreshInterval = setInterval(loadLogs, 10000); // Refresh every 10 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        function toggleAutoRefresh() {
+            isAutoRefreshEnabled = !isAutoRefreshEnabled;
+            elements.autoRefreshToggle.classList.toggle('active', isAutoRefreshEnabled);
+            
+            if (isAutoRefreshEnabled) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        // Manual refresh function for button click
+        async function handleManualRefresh() {
+            console.log('Manual refresh triggered');
+            await loadLogs();
+        }
+
+        // Event listeners
+        elements.refreshBtn.addEventListener('click', handleManualRefresh);
+        elements.autoRefreshToggle.addEventListener('click', toggleAutoRefresh);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Log viewer initialized');
+            elements.autoRefreshToggle.classList.add('active');
+            loadLogs();
+            startAutoRefresh();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', stopAutoRefresh);
+
+        // Post data modal
+        const modal = document.getElementById('postDataModal');
+        const closeBtn = document.querySelector('.close');
+
+        // Event delegation for POST data clicks
+        elements.logsList.addEventListener('click', function(event) {
+            const postDataEntry = event.target.closest('.post-data');
+            if (postDataEntry) {
+                const url = postDataEntry.dataset.postUrl;
+                const ip = postDataEntry.dataset.postIp;
+                const data = decodeURIComponent(postDataEntry.dataset.postData);
+                const userAgent = decodeURIComponent(postDataEntry.dataset.postAgent);
+                const timestamp = postDataEntry.dataset.postTimestamp;
+                
+                console.log('POST data clicked:', { url, ip, data, userAgent, timestamp });
+                showPostDataModal(url, ip, data, userAgent, timestamp);
+            }
+        });
+
+        function showPostDataModal(url, ip, data, userAgent, timestamp) {
+            console.log('Opening modal with data:', { url, ip, data, userAgent, timestamp });
+            const content = document.querySelector('.post-data-content');
+            
+            try {
+                // Parse the JSON data
+                const parsedData = JSON.parse(data);
+                
+                // Create structured content with sections
+                const requestInfo = `
+                    <div class="data-section">
+                        <div class="section-header">📡 Request Information</div>
+                        <div class="section-content">
+                            <div class="data-field">
+                                <div class="field-label">Timestamp</div>
+                                <div class="field-value">${escapeHtml(timestamp)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">Endpoint</div>
+                                <div class="field-value highlight-value">${escapeHtml(url)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">IP Address</div>
+                                <div class="field-value">${escapeHtml(ip)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">User Agent</div>
+                                <div class="field-value">${escapeHtml(userAgent)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Create POST data section
+                let postDataSection = `
+                    <div class="data-section">
+                        <div class="section-header">📝 POST Data Fields</div>
+                        <div class="section-content">
+                `;
+                
+                // Add each field from POST data
+                Object.entries(parsedData).forEach(([key, value]) => {
+                    const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+                    const isPassword = key.toLowerCase().includes('password');
+                    const fieldClass = isPassword ? 'highlight-value' : '';
+                    
+                    postDataSection += `
+                        <div class="data-field">
+                            <div class="field-label">${escapeHtml(key)}</div>
+                            <div class="field-value ${fieldClass}">${escapeHtml(displayValue)}</div>
+                        </div>
+                    `;
+                });
+                
+                postDataSection += `
+                        </div>
+                    </div>
+                `;
+                
+                // Add raw JSON section
+                const rawJsonSection = `
+                    <div class="data-section">
+                        <div class="section-header">🔧 Raw JSON Data</div>
+                        <div class="section-content">
+                            <div class="json-container">
+                                <div class="json-value">${escapeHtml(JSON.stringify(parsedData, null, 2))}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                content.innerHTML = requestInfo + postDataSection + rawJsonSection;
+                
+            } catch (error) {
+                console.error('Error parsing POST data:', error);
+                // If JSON parsing fails, show raw data in a nice format
+                content.innerHTML = `
+                    <div class="data-section">
+                        <div class="section-header">📡 Request Information</div>
+                        <div class="section-content">
+                            <div class="data-field">
+                                <div class="field-label">Timestamp</div>
+                                <div class="field-value">${escapeHtml(timestamp)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">Endpoint</div>
+                                <div class="field-value highlight-value">${escapeHtml(url)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">IP Address</div>
+                                <div class="field-value">${escapeHtml(ip)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">User Agent</div>
+                                <div class="field-value">${escapeHtml(userAgent)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-section">
+                        <div class="section-header">⚠️ Raw Data (Parse Error)</div>
+                        <div class="section-content">
+                            <div class="json-container">
+                                <div class="json-value">${escapeHtml(data)}</div>
+                            </div>
+                            <div class="data-field">
+                                <div class="field-label">Error</div>
+                                <div class="field-value" style="color: #ff6b6b;">${escapeHtml(error.message)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closePostData() {
+            modal.style.display = 'none';
+        }
+
+        closeBtn.addEventListener('click', closePostData);
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closePostData();
+            }
+        });
+
+        // Add escape key to close modal
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                closePostData();
+            }
+        });
+    </script>
+</body>
+</html> 

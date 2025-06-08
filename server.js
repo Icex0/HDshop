@@ -7,11 +7,39 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const multer = require('multer');
 const fs = require('fs');
+const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 
 const app = express();
 const port = 3000;
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+}
+
+// Create access log stream
+const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
+
+// Setup the logger - using combined format for detailed logs
+// Skip logging for the access-logs endpoint to avoid noise from the log viewer
+app.use(morgan('combined', { 
+    stream: accessLogStream,
+    skip: function (req, res) {
+        return req.url === '/api/access-logs';
+    }
+}));
+
+// Also log to console in development (but skip access-logs endpoint)
+if (process.env.NODE_ENV !== 'production') {
+    app.use(morgan('dev', {
+        skip: function (req, res) {
+            return req.url === '/api/access-logs';
+        }
+    }));
+}
 
 // Using default CORS settings
 app.use(cors());
@@ -20,8 +48,75 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+// Custom middleware to capture POST request bodies for logging
+// IMPORTANT: This must come AFTER bodyParser.json() so req.body is available
+app.use((req, res, next) => {
+    // Skip logging for the access-logs endpoint
+    if (req.url === '/api/access-logs') {
+        return next();
+    }
+
+    // Capture POST request bodies for security monitoring
+    if (req.method === 'POST' && req.body && Object.keys(req.body).length > 0) {
+        const originalSend = res.send;
+        
+        res.send = function(data) {
+            // Create a detailed log entry for POST requests
+            const timestamp = new Date().toISOString();
+            const ip = req.ip || req.connection.remoteAddress || req.socket?.remoteAddress || 'unknown';
+            const userAgent = req.get('User-Agent') || 'unknown';
+            
+            // Log all data without masking for security testing
+            const logEntry = `[${timestamp}] POST_DATA: ${req.url} - IP: ${ip} - Data: ${JSON.stringify(req.body)} - UserAgent: ${userAgent}\n`;
+            
+            console.log('Logging POST data:', logEntry.trim()); // Debug log
+            
+            // Write to log file
+            accessLogStream.write(logEntry);
+            
+            // Call original send
+            originalSend.call(this, data);
+        };
+    }
+    
+    next();
+});
+
 // Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Access logs viewing endpoint
+app.get('/api/access-logs', (req, res) => {
+    // Set CORS headers explicitly for this endpoint
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    try {
+        const logPath = path.join(logsDir, 'access.log');
+        if (fs.existsSync(logPath)) {
+            const logs = fs.readFileSync(logPath, 'utf8');
+            const logLines = logs.split('\n').filter(line => line.trim() !== '').slice(-100); // Last 100 lines
+            res.json({
+                success: true,
+                logs: logLines,
+                total: logLines.length
+            });
+        } else {
+            res.json({
+                success: true,
+                logs: [],
+                total: 0,
+                message: 'No access logs found'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Failed to read access logs'
+        });
+    }
+});
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
