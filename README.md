@@ -1,10 +1,14 @@
 # HDshop
 
 ## Tech ##
-- Express.js (node.js) backend
-- AngularJS frontend
-- PostgreSQL
-- Swagger UI accessible at /api-docs
+- HDshop at port 3000
+  - Express.js (node.js) backend
+  - AngularJS frontend
+  - PostgreSQL
+  - Swagger UI accessible at /api-docs (does not include the file upload API endpoint)
+- Log monitor application at port 3050 (you can filter for requests etc). Includes 2 API endpoints:
+  - http://localhost:3050/api/logs
+  - http://localhost:3050/api/health
 - Docker-compose included to easily start and stop everything
 
 ## Includes the following vulnerabilities:
