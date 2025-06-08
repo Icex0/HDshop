@@ -272,7 +272,7 @@
                         <img ng-src="{{item.image}}" alt="{{item.name}}">
                         <div class="order-item-details">
                             <p class="order-item-name">{{item.name}}</p>
-                            <p class="order-item-price">${{item.price}}</p>
+                            <p class="order-item-price">${{item.price}} x {{item.quantity || 1}}</p>
                         </div>
                     </div>
                 </div>

@@ -72,6 +72,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.2s;
+            margin-left: 20px;
         }
         .logout-btn:hover {
             background-color: #c82333;
@@ -228,13 +229,13 @@
                                 <img ng-src="{{item.image}}" alt="{{item.name}}">
                                 <div class="cart-item-details">
                                     <p class="cart-item-name">{{item.name}}</p>
-                                    <p class="cart-item-price">${{item.price}}</p>
+                                    <p class="cart-item-price">${{item.price}} x {{item.quantity}}</p>
                                 </div>
                                 <button class="remove-btn" ng-click="removeFromCart($index)">×</button>
                             </div>
                             <div class="cart-total">
                                 <span>Total:</span>
-                                <span>${{getTotal()}}</span>
+                                <span>${{getTotal().toFixed(2)}}</span>
                             </div>
                             <div class="cart-actions">
                                 <button class="view-cart-btn" ng-click="goToCheckout()">View Cart</button>

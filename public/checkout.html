@@ -77,32 +77,34 @@
         .cart-item {
             display: flex;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
         }
         .cart-item img {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             object-fit: cover;
             border-radius: 4px;
             margin-right: 15px;
         }
         .item-details {
-            flex-grow: 1;
+            flex: 1;
         }
         .item-price {
             font-weight: bold;
-            color: #007bff;
+            margin-right: 20px;
         }
         .remove-btn {
-            color: #dc3545;
-            background: none;
+            background-color: #dc3545;
+            color: white;
             border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
             cursor: pointer;
-            padding: 5px 10px;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
         .remove-btn:hover {
-            text-decoration: underline;
+            background-color: #c82333;
         }
         .order-summary {
             background: #f8f9fa;
@@ -166,6 +168,30 @@
             background-color: #6c757d;
             cursor: not-allowed;
         }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 15px;
+        }
+        .quantity-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .quantity-btn:hover {
+            background-color: #0056b3;
+        }
+        .quantity-display {
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -200,7 +226,12 @@
                         <h3>{{item.name}}</h3>
                         <p>{{item.description}}</p>
                     </div>
-                    <div class="item-price">${{item.price}}</div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" ng-click="decreaseQuantity($index)">-</button>
+                        <span class="quantity-display">{{item.quantity}}</span>
+                        <button class="quantity-btn" ng-click="increaseQuantity($index)">+</button>
+                    </div>
+                    <div class="item-price">${{(item.price * item.quantity).toFixed(2)}}</div>
                     <button class="remove-btn" ng-click="removeFromCart($index)">Remove</button>
                 </div>
             </div>
@@ -208,7 +239,7 @@
             <div class="order-summary">
                 <h2>Order Summary</h2>
                 <div class="total">
-                    Total: ${{getTotal()}}
+                    Total: ${{getTotal().toFixed(2)}}
                 </div>
             </div>
 

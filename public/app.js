@@ -81,35 +81,35 @@ angular.module('vulnerableApp', [])
             },
             {
                 id: 2,
-                name: 'Playful Kitten',
+                name: 'HUH cat',
                 description: 'An energetic kitten ready to play and bring joy to your life.',
                 price: 149.99,
                 image: '/assets/images/cat2.jpg'
             },
             {
                 id: 3,
-                name: 'Majestic Cat',
+                name: 'Confused Cat',
                 description: 'A regal cat with an elegant pose, perfect for cat enthusiasts.',
                 price: 199.99,
                 image: '/assets/images/cat3.jpg'
             },
             {
                 id: 4,
-                name: 'Curious Cat',
+                name: 'Scared Cat',
                 description: 'A curious cat exploring its surroundings, full of personality.',
                 price: 129.99,
                 image: '/assets/images/cat4.png'
             },
             {
                 id: 5,
-                name: 'Cozy Cat',
+                name: 'Crunchy Cat',
                 description: 'A comfortable cat enjoying its favorite spot, bringing warmth to your home.',
                 price: 179.99,
                 image: '/assets/images/cat5.jpg'
             },
             {
                 id: 6,
-                name: 'Adventure Cat',
+                name: 'Shower Cat',
                 description: 'An adventurous cat ready for new experiences and discoveries.',
                 price: 159.99,
                 image: '/assets/images/cat6.jpg'
@@ -118,7 +118,15 @@ angular.module('vulnerableApp', [])
 
         // Vulnerable: Client-side price manipulation
         $scope.addToCart = function(product) {
-            $scope.cart.push(product);
+            // Check if product already exists in cart
+            const existingItem = $scope.cart.find(item => item.id === product.id);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                // Add new item with quantity 1
+                const cartItem = { ...product, quantity: 1 };
+                $scope.cart.push(cartItem);
+            }
             $scope.showCart = true;
         };
 
@@ -129,7 +137,8 @@ angular.module('vulnerableApp', [])
 
         // Vulnerable: Client-side total calculation
         $scope.getTotal = function() {
-            return $scope.cart.reduce((total, item) => total + item.price, 0);
+            const total = $scope.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            return parseFloat(total.toFixed(2));
         };
 
         // Toggle cart dropdown
@@ -183,18 +192,40 @@ angular.module('vulnerableApp', [])
 
         // Vulnerable: Client-side data storage
         $scope.cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+        // Ensure all cart items have quantity property
+        $scope.cart.forEach(item => {
+            if (!item.quantity) {
+                item.quantity = 1;
+            }
+        });
         $scope.processing = false;
         $scope.message = '';
         $scope.success = false;
 
         // Vulnerable: Client-side total calculation
         $scope.getTotal = function() {
-            return $scope.cart.reduce((total, item) => total + item.price, 0);
+            const total = $scope.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            return parseFloat(total.toFixed(2));
         };
 
         // Vulnerable: Client-side cart manipulation
         $scope.removeFromCart = function(index) {
             $scope.cart.splice(index, 1);
+            sessionStorage.setItem('cart', JSON.stringify($scope.cart));
+        };
+
+        // Add quantity control functions
+        $scope.increaseQuantity = function(index) {
+            $scope.cart[index].quantity++;
+            sessionStorage.setItem('cart', JSON.stringify($scope.cart));
+        };
+
+        $scope.decreaseQuantity = function(index) {
+            if ($scope.cart[index].quantity > 1) {
+                $scope.cart[index].quantity--;
+            } else {
+                $scope.cart.splice(index, 1);
+            }
             sessionStorage.setItem('cart', JSON.stringify($scope.cart));
         };
 
