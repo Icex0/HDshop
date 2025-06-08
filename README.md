@@ -1,5 +1,12 @@
 # HDshop
 
+## Tech ##
+- Express.js (node.js) backend
+- AngularJS frontend
+- PostgreSQL
+- Swagger UI accessible at /api-docs
+- Docker-compose included to easily start and stop everything
+
 ## Includes the following vulnerabilities:
 
 - 🚫 **No HTTPS**
@@ -13,7 +20,10 @@
   - No HTTP Strict Transport Security (HSTS)
   - No Referrer header
   - No Permission Policy
-- 🦠 **Stored XSS**
+  - No X-Frame-Options
+  - No X-Content-Type-Options
+  - X-Powered-By header discloses tech
+- 🦠 **XSS - Stored Cross-Site Scritping**
   - Vector: `username` via create user or update user settings
 - 🧱 **Broken Access Control**
   - Any user can:
@@ -34,15 +44,17 @@
 - 🛡️ **Vulnerable CORS configuration on APIs**
   - Access-Control-Allow-Crendentials (ACAC) on true
   - Origin can be set by user
+- ⚠️**Outdated Swagger-UI (3.25.0) leads to XSS**
+  - Example: http://localhost:3000/api-docs/?configUrl=https://xss.smarpo.com/test.json
+- 🛠️**CSRF (Cross-Site Request Forgery) on any request**
+  - There are no anti-CSRF tokens and the session cookie has SameSite none
 ---
 
 ## TODO:
 
-- ⚠️ **Reflected XSS in some parameter**
-- 📚 **Outdated Swagger UI**
-  - Reflected XSS
-  - API endpoint for profile image retrieval > **LFI**
-- **Add CSTI**
+- **Reflected XSS in some parameter**
+- **API endpoint for profile image retrieval** > **LFI**
+- **CSTI**
 - **Open redirect**
 - **SSRF**
 ---
