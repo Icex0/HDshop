@@ -31,6 +31,7 @@
   - X-Powered-By header discloses tech
 - 🦠 **XSS - Stored Cross-Site Scritping**
   - Vector: `username` via create user or update user settings
+  - Reflects twice on shop page and once in the admin panel
 - 🧱 **Broken Access Control**
   - Any user can:
     - `GET /api/user/<ID>` > Retrieve data from other users (IDOR)
