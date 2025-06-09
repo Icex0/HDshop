@@ -1,16 +1,16 @@
 # HDshop
 
 ## Tech ##
-- HDshop app at port `3000`
+- HDshop app exposed at port `0.0.0.0:3000`
   - Express.js (node.js) backend
   - AngularJS frontend
-  - PostgreSQL
-  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint /api/user/<ID>/image and /api/user/<ID>/image/fetch-url)
-  - access.log persisted in Docker volume `hdapp_app_logs` (or use the log monitor app)
-- Log monitor application at port `80` (you can filter for requests etc)
+  - PostgreSQL at `172.20.0.30:5432`
+  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
+  - access.log can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
+- Log monitor application at port `172.20.0.10:80`. Used for SSRF and logging of activity in HDshop
   - Includes 2 API endpoints:
-    - http://localhost:3050/api/logs
-    - http://localhost:3050/api/health
+    - /api/logs
+    - /api/health
 - Docker-compose included to easily start and stop everything
 
 ## Includes the following vulnerabilities:
@@ -55,6 +55,7 @@
   - Origin (Origin: attacker.com) dynamically set by user request > Access-Control-Allow-Origin: attacker.com
 - ⚠️ **Outdated Swagger-UI (3.25.0) leads to XSS**
   - Example: http://localhost:3000/api-docs/?configUrl=https://xss.smarpo.com/test.json
+  - Something can also be said about the documentation being public
 - 🛠️ **CSRF (Cross-Site Request Forgery) on any request**
   - There are no anti-CSRF tokens and the session cookie has SameSite none
 - 📂 **LFI - Local file inclusion**
