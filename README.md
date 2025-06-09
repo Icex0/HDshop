@@ -92,33 +92,32 @@
   - In `POST /api/purchase` the `name` parameter does not validate input and can contain `{{7*7}}` which results in 49 on the user profile page and in the admin panel
   - The CSTI can be used to perform XSS > `"name":"{{constructor.constructor('alert(document.cookie)')()}}"`
 ---
-## Risk estimate ##
-| #   | Vulnerability                                               | Risk Score   |
-| --- | ----------------------------------------------------------- | ------------ |
-| 1   | 💣 SQL Injection (login - stacked, error/time-based)        | Critical |
-| 2   | 🧱 Broken Access Control (IDOR, role escalation)            | Critical |
-| 3   | 🔐 Sensitive Data Exposure (config.json)                    | Critical |
-| 4   | 🦠 Stored XSS (username field)                              | High     |
-| 5   | 🔓 Passwords Stored in Plaintext                            | High     |
-| 6   | 🧾 Default Credentials for Postgres                         | High     |
-| 7   | 🛠️ CSRF (Cross-Site Request Forgery)                       | High     |
-| 8   | 📂 LFI - Local File Inclusion                               | High     |
-| 9   | 🌐 SSRF - Server-Side Request Forgery                       | High     |
-| 10  | 🚫 No HTTPS                                                 | High         |
-| 11  | 🦠 XSS - Reflected Cross-Site Scripting                     | High         |
-| 12  | 🧠 Logic Bugs (price manipulation)                          | High         |
-| 13  | 📤 Weak (client-side only) upload restrictions              | High         |
-| 14  | ⚠️ Outdated Swagger-UI (3.25.0) leads to XSS                | High         |
-| 15  | 🧩 CSTI - Client-side template injection (AngularJS)        | High         |
-| 16  | 🔎 Username Enumeration in login and registration functions | Medium       |
-| 17  | 🕒 No Login Rate Limit                                      | Medium       |
-| 18  | 🍪 Session Cookie Missing Flags                             | Medium       |
-| 19  | 🛠️ Change user settings without requiring current password | Medium       |
-| 20  | 🛡️ Vulnerable CORS Configuration                           | Medium   |
-| 21  | 🛡️ Missing all Security Headers                            | Low          |
-| 22  | 📦 Outdated JavaScript Libraries                            | Low          |
-| 23  | 🧯 Verbose errors in production                             | Low          |
-| 24  | 🆔 Simple Identifiers (no UUIDv4)                           | Info         |
+## Risk and difficulty estimate ##
+| #   | Vulnerability                                               | Risk Score   | Difficulty | Findable with Limited Experience                                                                                                       |
+| --- | ----------------------------------------------------------- | ------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 💣 SQL Injection (login - stacked, error/time-based)        | Critical | Easy       | Yes - Easy with SQLmap                                                                                                                 |
+| 2   | 🧱 Broken Access Control (IDOR, role escalation)            | Critical | Easy       | Yes - Not all BAC issues but I do expect most to be found                                                                              |
+| 3   | 🔐 Sensitive Data Exposure (config.json)                    | Critical | Easy       | No - Requires fuzzing for .json extension, which should be done because JSON is used throughout the app but I can understand if missed |
+| 4   | 🦠 Stored XSS (username field)                              | High     | Easy       | Yes - This should be the first field you check for XSS as it is reflected everywhere                                                   |
+| 5   | 🔓 Passwords Stored in Plaintext                            | High     | Easy       | No - Requires the user to dump (SQLi) the users table and observe the passwords                                                        |
+| 6   | 🛠️ CSRF (Cross-Site Request Forgery)                       | High     | Medium     | Yes                                                                                                                                    |
+| 7   | 📂 LFI - Local File Inclusion                               | **High     | Easy       | Yes - The vulnerable parameter is pretty obvious                                                                                       |
+| 8   | 🌐 SSRF - Server-Side Request Forgery                       | **High     | Medium     | Yes - Basic PoC. Full PoC not expected                                                                                                 |
+| 9   | 🚫 No HTTPS                                                 | High         | Easy       | Yes - Easy to overlook though                                                                                                          |
+| 10  | 🦠 XSS - Reflected Cross-Site Scripting                     | High         | Easy       | Yes - Any mistyped path/file etc leads to the error page. The vulnerable parameter is also obvious                                     |
+| 11  | 🧠 Logic Bugs (price manipulation)                          | High         | Easy       | Yes - I expect it to be found but it can be easy to miss                                                                               |
+| 12  | 📤 Weak (client-side only) upload restrictions              | High         | Medium     | Yes - When checking upload functions, the first thing to check is whether restrictions are enforced only on the client side            |
+| 13  | ⚠️ Outdated Swagger-UI (3.25.0) leads to XSS                | High         | Medium     | No - Requires some experience                                                                                                          |
+| 14  | 🧩 CSTI - Client-side template injection (AngularJS)        | High         | Medium     | No - Requires some experience                                                                                                          |
+| 15  | 🔎 Username Enumeration in login and registration functions | Medium       | Easy       | Yes - In multiple functions                                                                                                            |
+| 16  | 🕒 No Login Rate Limit                                      | Medium       | Easy       | Yes - Easy to overlook though                                                                                                          |
+| 17  | 🍪 Session Cookie Missing Flags                             | Medium       | Easy       | Yes                                                                                                                                    |
+| 18  | 🛠️ Change user settings without requiring current password | Medium       | Easy       | No - Easy to overlook                                                                                                                  |
+| 19  | 🛡️ Vulnerable CORS Configuration                           | Medium       | Easy       | No - CORS issues are easy to find but often overlooked                                                                                 |
+| 20  | 🛡️ Missing all Security Headers                            | Low          | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
+| 21  | 📦 Outdated JavaScript Libraries                            | Low          | Easy       | No - Requires Burp Pro or retire.js etc                                                                                                |
+| 22  | 🧯 Verbose errors in production                             | Low          | Easy       | Yes                                                                                                                                    |
+| 23  | 🆔 Simple Identifiers (no UUIDv4)                           | Info         | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
 
 ---
 
