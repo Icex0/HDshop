@@ -78,6 +78,8 @@
 
 ![profile](./images/profile.png)
 
+![admin](./images/admin.png)
+
 ## TODO:
 
 - **CSTI**

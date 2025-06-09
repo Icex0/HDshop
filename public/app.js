@@ -460,7 +460,7 @@ angular.module('vulnerableApp', [])
             });
         };
     })
-    .controller('AdminController', function($scope, $http, $window, $timeout) {
+    .controller('AdminController', function($scope, $http, $window, $timeout, $sce) {
         // Check if user is admin
         $http.get('/api/session')
             .then(function(response) {
@@ -491,7 +491,11 @@ angular.module('vulnerableApp', [])
             $http.get('/api/users')
                 .then(function(response) {
                     if (response.data.success) {
-                        $scope.users = response.data.users;
+                        // Vulnerable: Trust username HTML content without sanitization - allows XSS
+                        $scope.users = response.data.users.map(function(user) {
+                            user.username = $sce.trustAsHtml(user.username);
+                            return user;
+                        });
                     } else {
                         $scope.showNotification('Error loading users', false);
                     }

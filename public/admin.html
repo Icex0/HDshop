@@ -266,7 +266,7 @@
             <tbody>
                 <tr ng-repeat="user in users">
                     <td>{{user.id}}</td>
-                    <td>{{user.username}}</td>
+                    <td ng-bind-html="user.username"></td>
                     <td>{{user.email}}</td>
                     <td>
                         <span class="role-badge" ng-class="{'role-admin': user.role === 'admin', 'role-user': user.role === 'user'}">
