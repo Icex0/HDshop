@@ -27,7 +27,7 @@
 ## Includes the following vulnerabilities and misconfigurations:
 
 - 🚫 **No HTTPS**
-- 🔎 **Username Enumeration** in login and registration functions
+- 🔎 **Username Enumeration** in login, registration and update profile functions
 - 💣 **SQL Injection**  
   - Affects: `login` > `username` field
   - Possible to bypass authentication with `pentest1' OR 1=1--`
@@ -134,5 +134,5 @@
 ## TODO:
 
 - **Open redirect**
-- **Change Postgres DBA priv**
+- **Change Postgres DBA priv?**
 ---
