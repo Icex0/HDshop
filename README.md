@@ -93,7 +93,7 @@
   - The CSTI can be used to perform XSS > `"name":"{{constructor.constructor('alert(document.cookie)')()}}"`
 ---
 ## Risk and difficulty estimate ##
-| #   | Vulnerability                                               | Risk Score   | Difficulty | Findable with Limited Experience                                                                                                       |
+| #   | Vulnerability                                               | Risk Score   | Difficulty | Expected to be found with limited webapp exp                                                                                                       |
 | --- | ----------------------------------------------------------- | ------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | 💣 SQL Injection (login - stacked, error/time-based)        | Critical | Easy       | Yes - Easy with SQLmap                                                                                                                 |
 | 2   | 🧱 Broken Access Control (IDOR, role escalation)            | Critical | Easy       | Yes - Not all BAC issues but I do expect most to be found                                                                              |
@@ -101,8 +101,8 @@
 | 4   | 🦠 Stored XSS (username field)                              | High     | Easy       | Yes - This should be the first field you check for XSS as it is reflected everywhere                                                   |
 | 5   | 🔓 Passwords Stored in Plaintext                            | High     | Easy       | No - Requires the user to dump (SQLi) the users table and observe the passwords                                                        |
 | 6   | 🛠️ CSRF (Cross-Site Request Forgery)                       | High     | Medium     | Yes                                                                                                                                    |
-| 7   | 📂 LFI - Local File Inclusion                               | **High     | Easy       | Yes - The vulnerable parameter is pretty obvious                                                                                       |
-| 8   | 🌐 SSRF - Server-Side Request Forgery                       | **High     | Medium     | Yes - Basic PoC. Full PoC not expected                                                                                                 |
+| 7   | 📂 LFI - Local File Inclusion                               | High     | Easy       | Yes - The vulnerable parameter is pretty obvious                                                                                       |
+| 8   | 🌐 SSRF - Server-Side Request Forgery                       | High     | Medium     | Yes - Basic PoC. Full PoC not expected                                                                                                 |
 | 9   | 🚫 No HTTPS                                                 | High         | Easy       | Yes - Easy to overlook though                                                                                                          |
 | 10  | 🦠 XSS - Reflected Cross-Site Scripting                     | High         | Easy       | Yes - Any mistyped path/file etc leads to the error page. The vulnerable parameter is also obvious                                     |
 | 11  | 🧠 Logic Bugs (price manipulation)                          | High         | Easy       | Yes - I expect it to be found but it can be easy to miss                                                                               |
