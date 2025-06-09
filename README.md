@@ -29,9 +29,11 @@
   - No X-Frame-Options
   - No X-Content-Type-Options
   - X-Powered-By header discloses tech
-- 🦠 **XSS - Stored Cross-Site Scritping**
+- 🦠 **XSS - Stored Cross-Site Scripting**
   - Vector: `username` via create user or update user settings
   - Reflects twice on shop page and once in the admin panel
+- 🦠 **XSS - Reflected Cross-Site Scripting**
+   - Any mistyped path/file leads to `error.html` which reflects a user controlled `ErrorMessage` parameter > `/error.html?ErrorMessage=<img src=x>&ErrorCode=404`
 - 🧱 **Broken Access Control**
   - Any user can:
     - `GET /api/user/<ID>` > Retrieve data from other users (IDOR)
@@ -39,7 +41,7 @@
     - `GET /api/user/<ID>/orders` > Get orders from other users (IDOR)
     - `POST /api/user/<ID>/image` > Add profile images to other users (containing XSS)
   - When updating a user profile, a POST request is made to `/api/profile/update` which contains a `role` parameter (not shown on the client-side).
-    - "role":"user" can be changed to "role":"admin" which leads to vertical privilege escalation
+    - `"role":"user"` can be changed to `"role":"admin"` which leads to vertical privilege escalation > this gives access to the admin panel
 - 🔐 **Sensitive Data Exposure**
   - Passwords and API keys present in `config.json`
 - 🧠 **Logic Bugs**
