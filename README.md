@@ -80,7 +80,6 @@
 
 ## TODO:
 
-- **Reflected XSS in parameter**
 - **CSTI**
 - **Open redirect**
 ---
