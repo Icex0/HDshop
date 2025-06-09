@@ -6,15 +6,18 @@
   - AngularJS frontend
   - PostgreSQL at `172.20.0.30:5432`
   - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
-  - access.log can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
+  - `access.log` can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
 - Log monitor application at port `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
   - Includes 2 API endpoints:
     - /api/logs
     - /api/health
   - If you don't care about the SSRF and only want to use it for logging you can expose it on `0.0.0.0` by removing `127.0.0.1` from the docker-compose file (or use it with the SSRF, reboot (logs are persisted) after CTF and remove `127.0.0.1`).
 - Docker-compose included to easily start and stop everything
+- Default credentials (you can create more accounts):
+  - pentest1:password
+  - pentest2:password
 
-## Includes the following vulnerabilities:
+## Includes the following vulnerabilities and misconfigurations:
 
 - 🚫 **No HTTPS**
 - 🔎 **Username Enumeration** in login and registration functions
