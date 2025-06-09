@@ -13,6 +13,7 @@
     - /api/health
   - If you don't care about the SSRF and only want to use it for logging you can expose it on `0.0.0.0` by removing `127.0.0.1` from the docker-compose file (or use it with the SSRF, reboot (logs are persisted) after CTF and remove `127.0.0.1`).
 - Docker-compose included to easily start and stop everything
+  - `docker-compose up -d`
 - Default credentials (you can create more accounts):
   - pentest1:password
   - pentest2:password
