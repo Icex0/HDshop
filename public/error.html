@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HDshop - Error</title>
+    <script src="js/angular.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+        }
+        .error-container {
+            background: #2a2a3e;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #404060;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .error-icon {
+            font-size: 64px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .error-title {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .error-message {
+            font-size: 16px;
+            color: #b0b0c0;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .error-code {
+            font-size: 12px;
+            color: #b0b0c0;
+            background: #333344;
+            border: 1px solid #404060;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+        }
+        .suggestions {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .suggestions h4 {
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .suggestions ul {
+            color: #b0b0c0;
+            padding-left: 20px;
+        }
+        .suggestions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body ng-app="errorApp" ng-controller="ErrorController">
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title">Oops! Something went wrong</div>
+        <div class="error-message" ng-bind-html="errorMessage"></div>
+        <div class="error-code" ng-if="errorCode">Error Code: {{errorCode}}</div>
+        
+        <div class="suggestions">
+            <h4>What can you do?</h4>
+            <ul>
+                <li>Check the URL for typos</li>
+                <li>Go back to the previous page</li>
+                <li>Visit our homepage</li>
+                <li>Contact support if the problem persists</li>
+            </ul>
+        </div>
+        
+        <a href="/" class="back-btn">Go to Homepage</a>
+    </div>
+
+    <script>
+        var app = angular.module('errorApp', []);
+        
+        app.controller('ErrorController', function($scope, $location, $sce) {
+            // Get URL parameters
+            var urlParams = new URLSearchParams(window.location.search);
+            
+            // Get ErrorMessage parameter or set default
+            var rawErrorMessage = urlParams.get('ErrorMessage') || 'The page you are looking for could not be found.';
+            
+            // Vulnerable: Trust HTML content without sanitization - allows XSS
+            $scope.errorMessage = $sce.trustAsHtml(rawErrorMessage);
+            
+            // Get optional ErrorCode parameter
+            $scope.errorCode = urlParams.get('ErrorCode') || null;
+            
+            // Set default message based on common error codes
+            if (!urlParams.get('ErrorMessage')) {
+                var errorCode = $scope.errorCode;
+                var defaultMessage;
+                switch(errorCode) {
+                    case '404':
+                        defaultMessage = 'The page you requested could not be found.';
+                        break;
+                    case '403':
+                        defaultMessage = 'You do not have permission to access this resource.';
+                        break;
+                    case '500':
+                        defaultMessage = 'An internal server error occurred. Please try again later.';
+                        break;
+                    case '400':
+                        defaultMessage = 'The request was invalid or malformed.';
+                        break;
+                    default:
+                        defaultMessage = 'An unexpected error occurred. Please try again.';
+                }
+                // Vulnerable: Trust default HTML content without sanitization
+                $scope.errorMessage = $sce.trustAsHtml(defaultMessage);
+            }
+        });
+    </script>
+</body>
+</html> 

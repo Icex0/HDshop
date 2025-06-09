@@ -1069,6 +1069,40 @@ app.delete('/api/user/:userId', async (req, res) => {
     }
 });
 
+// 404 Error Handler - Must be after all other routes
+app.use('*', (req, res) => {
+    // Extract the requested path from the URL
+    const requestedPath = req.originalUrl || req.path;
+    
+    // Create custom error message
+    const errorMessage = `The requested resource "${requestedPath}" was not found on this server.`;
+    
+    // Redirect to error page with parameters
+    const errorUrl = `/error.html?ErrorMessage=${encodeURIComponent(errorMessage)}&ErrorCode=404`;
+    res.redirect(errorUrl);
+});
+
+// General Error Handler
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err);
+    
+    // Determine error message and code
+    let errorMessage = 'An unexpected server error occurred. Please try again later.';
+    let errorCode = '500';
+    
+    if (err.status) {
+        errorCode = err.status.toString();
+    }
+    
+    if (err.message) {
+        errorMessage = err.message;
+    }
+    
+    // Redirect to error page with parameters
+    const errorUrl = `/error.html?ErrorMessage=${encodeURIComponent(errorMessage)}&ErrorCode=${errorCode}`;
+    res.redirect(errorUrl);
+});
+
 // Vulnerable: No rate limiting
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
