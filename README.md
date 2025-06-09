@@ -111,14 +111,15 @@
 | 13  | ⚠️ Outdated Swagger-UI (3.25.0) leads to XSS                | High         | Medium     | No - Requires some experience                                                                                                          |
 | 14  | 🧩 CSTI - Client-side template injection (AngularJS)        | High         | Medium     | No - Requires some experience                                                                                                          |
 | 15  | 🔎 Username Enumeration in login and registration functions | Medium       | Easy       | Yes - In multiple functions                                                                                                            |
-| 16  | 🕒 No Login Rate Limit                                      | Medium       | Easy       | Yes - Easy to overlook though                                                                                                          |
-| 17  | 🍪 Session Cookie Missing Flags                             | Medium       | Easy       | Yes                                                                                                                                    |
-| 18  | 🛠️ Change user settings without requiring current password | Medium       | Easy       | No - Easy to overlook                                                                                                                  |
-| 19  | 🛡️ Vulnerable CORS Configuration                           | Medium       | Easy       | No - CORS issues are easy to find but often overlooked                                                                                 |
-| 20  | 🛡️ Missing all Security Headers                            | Low          | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
-| 21  | 📦 Outdated JavaScript Libraries                            | Low          | Easy       | No - Requires Burp Pro or retire.js etc                                                                                                |
-| 22  | 🧯 Verbose errors in production                             | Low          | Easy       | Yes                                                                                                                                    |
-| 23  | 🆔 Simple Identifiers (no UUIDv4)                           | Info         | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
+| 16  | 🔓 No Password Complexity Requirements                      | Medium       | Easy       | Yes - Easy to overlook though                                                                                                          |
+| 17  | 🕒 No Login Rate Limit                                      | Medium       | Easy       | Yes - Easy to overlook though                                                                                                          |
+| 18  | 🍪 Session Cookie Missing Flags                             | Medium       | Easy       | Yes                                                                                                                                    |
+| 19  | 🛠️ Change user settings without requiring current password | Medium       | Easy       | No - Easy to overlook                                                                                                                  |
+| 20  | 🛡️ Vulnerable CORS Configuration                           | Medium       | Easy       | No - CORS issues are easy to find but often overlooked                                                                                 |
+| 21  | 🛡️ Missing all Security Headers                            | Low          | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
+| 22  | 📦 Outdated JavaScript Libraries                            | Low          | Easy       | No - Requires Burp Pro or retire.js etc                                                                                                |
+| 23  | 🧯 Verbose errors in production                             | Low          | Easy       | Yes                                                                                                                                    |
+| 24  | 🆔 Simple Identifiers (no UUIDv4)                           | Info         | Easy       | Yes - Easy to overlook if no pentesting experience                                                                                     |
 
 ---
 
