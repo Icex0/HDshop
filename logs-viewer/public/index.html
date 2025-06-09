@@ -795,6 +795,71 @@
         let filteredLogs = []; // Store filtered logs
         let currentSearchTerm = '';
 
+        // Filter persistence using localStorage
+        const FILTER_STORAGE_KEY = 'logviewer_filters';
+
+        function saveFilterState() {
+            const filterState = {
+                searchTerm: elements.searchInput.value,
+                excludePattern: elements.excludeInput.value,
+                caseSensitive: elements.caseSensitive.checked,
+                regexSearch: elements.regexSearch.checked,
+                postDataOnly: elements.postDataOnly.checked,
+                excludeEnabled: elements.excludeEnabled.checked,
+                simplifiedView: elements.simplifiedView.checked,
+                autoRefreshEnabled: isAutoRefreshEnabled
+            };
+            
+            try {
+                localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filterState));
+                console.log('Filter state saved:', filterState);
+            } catch (error) {
+                console.warn('Could not save filter state to localStorage:', error);
+            }
+        }
+
+        function restoreFilterState() {
+            try {
+                const saved = localStorage.getItem(FILTER_STORAGE_KEY);
+                if (saved) {
+                    const filterState = JSON.parse(saved);
+                    console.log('Restoring filter state:', filterState);
+                    
+                    // Restore form values
+                    elements.searchInput.value = filterState.searchTerm || '';
+                    elements.excludeInput.value = filterState.excludePattern || '';
+                    elements.caseSensitive.checked = filterState.caseSensitive || false;
+                    elements.regexSearch.checked = filterState.regexSearch || false;
+                    elements.postDataOnly.checked = filterState.postDataOnly || false;
+                    elements.excludeEnabled.checked = filterState.excludeEnabled || false;
+                    elements.simplifiedView.checked = filterState.simplifiedView || false;
+                    
+                    // Restore auto-refresh state
+                    if (filterState.autoRefreshEnabled !== undefined) {
+                        isAutoRefreshEnabled = filterState.autoRefreshEnabled;
+                        elements.autoRefreshToggle.classList.toggle('active', isAutoRefreshEnabled);
+                    }
+                    
+                    // Update current search term for consistency
+                    currentSearchTerm = filterState.searchTerm || '';
+                    
+                    return true; // Indicate filters were restored
+                }
+            } catch (error) {
+                console.warn('Could not restore filter state from localStorage:', error);
+            }
+            return false;
+        }
+
+        function clearFilterState() {
+            try {
+                localStorage.removeItem(FILTER_STORAGE_KEY);
+                console.log('Filter state cleared from localStorage');
+            } catch (error) {
+                console.warn('Could not clear filter state from localStorage:', error);
+            }
+        }
+
         const elements = {
             connectionStatus: document.getElementById('connectionStatus'),
             logsInfo: document.getElementById('logsInfo'),
@@ -815,7 +880,7 @@
             excludeEnabled: document.getElementById('excludeEnabled')
         };
 
-        async function loadLogs() {
+        async function loadLogs(searchParams = null) {
             // Prevent multiple simultaneous requests
             if (isLoading) {
                 console.log('Load already in progress, skipping...');
@@ -829,8 +894,15 @@
                 elements.refreshBtn.style.opacity = '0.6';
                 elements.refreshBtn.disabled = true;
                 
-                console.log('Fetching logs...');
-                const response = await fetch('/api/logs');
+                // Build URL with search parameters
+                let url = '/api/logs';
+                if (searchParams) {
+                    const params = new URLSearchParams(searchParams);
+                    url += '?' + params.toString();
+                }
+                
+                console.log('Fetching logs with URL:', url);
+                const response = await fetch(url);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -841,24 +913,54 @@
                 
                 if (data.success) {
                     updateConnectionStatus(true);
-                    elements.logsInfo.textContent = `Showing ${data.total} recent log entries`;
-                    elements.totalLogs.textContent = data.total;
+                    
+                    // Update info based on whether search was applied
+                    if (data.searchApplied) {
+                        if (data.truncated) {
+                            elements.logsInfo.textContent = `Showing ${data.total} of ${data.totalMatches} matches (${data.totalInFile} total logs)`;
+                        } else {
+                            elements.logsInfo.textContent = `Showing ${data.totalMatches} matches (${data.totalInFile} total logs)`;
+                        }
+                    } else {
+                        elements.logsInfo.textContent = `Showing ${data.total} recent log entries (${data.totalInFile} total logs)`;
+                    }
+                    
+                    elements.totalLogs.textContent = data.totalInFile || data.total;
                     elements.lastUpdate.textContent = new Date().toLocaleTimeString();
                     
                     if (data.logs && data.logs.length > 0) {
                         console.log('Processing logs:', data.logs.length);
                         
-                        // Store all logs for searching
+                        // Store logs directly from server (already filtered)
                         allLogs = [...data.logs];
+                        filteredLogs = [...data.logs];
                         
-                        // Perform search to update filtered logs
-                        performSearch();
+                        // Update search results display
+                        if (data.searchApplied) {
+                            elements.searchResults.style.display = 'inline';
+                            if (data.truncated) {
+                                elements.searchResults.textContent = `Found ${data.totalMatches} matches (showing last ${data.total})`;
+                            } else {
+                                elements.searchResults.textContent = `Found ${data.totalMatches} matches`;
+                            }
+                        } else {
+                            elements.searchResults.style.display = 'none';
+                        }
                         
+                        renderLogs();
                         lastLogCount = data.logs.length;
                     } else {
                         allLogs = [];
                         filteredLogs = [];
-                        elements.logsList.innerHTML = '<div class="no-logs">📝 No access logs found</div>';
+                        
+                        if (data.searchApplied) {
+                            elements.logsList.innerHTML = '<div class="no-logs">🔍 No logs match your search criteria</div>';
+                            elements.searchResults.style.display = 'inline';
+                            elements.searchResults.textContent = 'No matches found';
+                        } else {
+                            elements.logsList.innerHTML = '<div class="no-logs">📝 No access logs found</div>';
+                        }
+                        
                         elements.filteredLogs.textContent = 0;
                         lastLogCount = 0;
                     }
@@ -905,125 +1007,44 @@
             const caseSensitive = elements.caseSensitive.checked;
             const regexSearch = elements.regexSearch.checked;
             const postDataOnly = elements.postDataOnly.checked;
-            const simplifiedView = elements.simplifiedView.checked;
             const excludeEnabled = elements.excludeEnabled.checked;
             const excludeInput = elements.excludeInput.value;
 
             currentSearchTerm = searchTerm;
 
-            // Start with all logs
-            let logsToFilter = [...allLogs];
+            // Save filter state whenever search is performed
+            saveFilterState();
 
-            // Apply exclude filter first if enabled
-            if (excludeEnabled && excludeInput.trim()) {
-                try {
-                    logsToFilter = logsToFilter.filter(log => {
-                        let excludeText = log;
-                        let excludePattern = excludeInput.trim();
-
-                        // Handle case sensitivity for exclude
-                        if (!caseSensitive) {
-                            excludeText = excludeText.toLowerCase();
-                            excludePattern = excludePattern.toLowerCase();
-                        }
-
-                        // Handle regex exclude
-                        if (regexSearch) {
-                            try {
-                                const regex = new RegExp(excludePattern, caseSensitive ? 'g' : 'gi');
-                                return !regex.test(excludeText); // Exclude if it matches
-                            } catch (e) {
-                                // Invalid regex, fall back to plain text exclude
-                                return !excludeText.includes(excludePattern);
-                            }
-                        } else {
-                            // Check for multiple exclude patterns separated by comma (OR logic)
-                            // Each pattern can also contain AND logic
-                            const excludePatterns = excludePattern.split(',').map(p => p.trim()).filter(p => p);
-                            return !excludePatterns.some(pattern => {
-                                // Check if this pattern contains AND logic
-                                if (pattern.includes(' AND ')) {
-                                    // Split by AND and check that ALL terms are present
-                                    const andTerms = pattern.split(' AND ').map(term => term.trim()).filter(term => term);
-                                    return andTerms.every(term => excludeText.includes(term));
-                                } else {
-                                    // Single term check
-                                    return excludeText.includes(pattern);
-                                }
-                            });
-                        }
-                    });
-                } catch (error) {
-                    console.error('Exclude filter error:', error);
-                }
+            // Build search parameters for server-side search
+            const searchParams = {};
+            
+            if (searchTerm && searchTerm.trim()) {
+                searchParams.search = searchTerm.trim();
+            }
+            
+            if (caseSensitive) {
+                searchParams.caseSensitive = 'true';
+            }
+            
+            if (regexSearch) {
+                searchParams.regex = 'true';
+            }
+            
+            if (postDataOnly) {
+                searchParams.postDataOnly = 'true';
+            }
+            
+            if (excludeEnabled && excludeInput && excludeInput.trim()) {
+                searchParams.exclude = excludeInput.trim();
             }
 
-            // Apply search filter
-            if (!searchTerm.trim()) {
-                // No search term, show filtered logs (after exclude)
-                filteredLogs = logsToFilter;
-                elements.searchResults.style.display = 'none';
+            // If no search criteria, load default logs
+            if (Object.keys(searchParams).length === 0) {
+                loadLogs();
             } else {
-                try {
-                    filteredLogs = logsToFilter.filter(log => {
-                        // Filter by POST data only if option is checked
-                        if (postDataOnly && !log.includes('POST')) {
-                            return false;
-                        }
-
-                        let searchText = log;
-                        let searchPattern = searchTerm;
-
-                        // Handle case sensitivity
-                        if (!caseSensitive) {
-                            searchText = searchText.toLowerCase();
-                            searchPattern = searchPattern.toLowerCase();
-                        }
-
-                        // Handle regex search
-                        if (regexSearch) {
-                            try {
-                                const regex = new RegExp(searchPattern, caseSensitive ? 'g' : 'gi');
-                                return regex.test(searchText);
-                            } catch (e) {
-                                // Invalid regex, fall back to plain text search
-                                return searchText.includes(searchPattern);
-                            }
-                        } else {
-                            return searchText.includes(searchPattern);
-                        }
-                    });
-
-                    // Show search results info
-                    elements.searchResults.style.display = 'inline';
-                    elements.searchResults.textContent = `Found ${filteredLogs.length} matches`;
-                } catch (error) {
-                    console.error('Search error:', error);
-                    filteredLogs = logsToFilter;
-                    elements.searchResults.style.display = 'inline';
-                    elements.searchResults.textContent = 'Search error';
-                }
+                // Load logs with search parameters
+                loadLogs(searchParams);
             }
-
-            // Add exclude info to results
-            if (excludeEnabled && excludeInput.trim()) {
-                const excludedCount = allLogs.length - logsToFilter.length;
-                let currentResultsText = elements.searchResults.textContent;
-                
-                // Remove any existing excluded count information
-                if (currentResultsText) {
-                    currentResultsText = currentResultsText.replace(/\s*\(\d+\s+excluded\).*$/, '');
-                }
-                
-                elements.searchResults.style.display = 'inline';
-                if (currentResultsText && currentResultsText !== 'Search error' && currentResultsText.trim()) {
-                    elements.searchResults.textContent = `${currentResultsText} (${excludedCount} excluded)`;
-                } else {
-                    elements.searchResults.textContent = `${excludedCount} logs excluded`;
-                }
-            }
-
-            renderLogs();
         }
 
         function renderLogs() {
@@ -1143,14 +1164,23 @@
             elements.simplifiedView.checked = false;
             elements.excludeInput.value = '';
             elements.excludeEnabled.checked = false;
-            performSearch();
+            currentSearchTerm = '';
+            
+            // Clear filter state from localStorage
+            clearFilterState();
+            
+            // Load default logs (no search parameters)
+            loadLogs();
         }
 
         function startAutoRefresh() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
             }
-            autoRefreshInterval = setInterval(loadLogs, 10000); // Refresh every 10 seconds
+            autoRefreshInterval = setInterval(() => {
+                // For auto-refresh, apply current search filters
+                performSearch();
+            }, 10000); // Refresh every 10 seconds
         }
 
         function stopAutoRefresh() {
@@ -1164,6 +1194,9 @@
             isAutoRefreshEnabled = !isAutoRefreshEnabled;
             elements.autoRefreshToggle.classList.toggle('active', isAutoRefreshEnabled);
             
+            // Save the updated auto-refresh state
+            saveFilterState();
+            
             if (isAutoRefreshEnabled) {
                 startAutoRefresh();
             } else {
@@ -1174,22 +1207,42 @@
         // Manual refresh function for button click
         async function handleManualRefresh() {
             console.log('Manual refresh triggered');
-            await loadLogs();
+            // For manual refresh, apply current search filters
+            performSearch();
         }
 
         // Event listeners
         elements.refreshBtn.addEventListener('click', handleManualRefresh);
         elements.autoRefreshToggle.addEventListener('click', toggleAutoRefresh);
 
+        // Debounce function to avoid too many API calls while typing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Create debounced search function
+        const debouncedSearch = debounce(performSearch, 500); // 500ms delay
+
         // Search event listeners
-        elements.searchInput.addEventListener('input', performSearch);
+        elements.searchInput.addEventListener('input', debouncedSearch);
         elements.clearSearch.addEventListener('click', clearSearch);
         elements.caseSensitive.addEventListener('change', performSearch);
         elements.regexSearch.addEventListener('change', performSearch);
         elements.postDataOnly.addEventListener('change', performSearch);
-        elements.simplifiedView.addEventListener('change', performSearch);
+        elements.excludeInput.addEventListener('input', debouncedSearch);
         elements.excludeEnabled.addEventListener('change', performSearch);
-        elements.excludeInput.addEventListener('input', performSearch);
+        elements.simplifiedView.addEventListener('change', () => {
+            saveFilterState(); // Save simplified view state
+            renderLogs(); // Only affects rendering, not search
+        });
 
         // Search keyboard shortcuts
         elements.searchInput.addEventListener('keydown', (e) => {
@@ -1202,9 +1255,31 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Log viewer initialized');
-            elements.autoRefreshToggle.classList.add('active');
-            loadLogs();
-            startAutoRefresh();
+            
+            // Restore filter state from localStorage
+            const filtersRestored = restoreFilterState();
+            
+            // Set default auto-refresh if not restored
+            if (!filtersRestored) {
+                isAutoRefreshEnabled = true;
+                elements.autoRefreshToggle.classList.add('active');
+            }
+            
+            // Load logs with restored filters or default
+            if (filtersRestored && (elements.searchInput.value || elements.excludeInput.value || 
+                                  elements.caseSensitive.checked || elements.regexSearch.checked || 
+                                  elements.postDataOnly.checked || elements.excludeEnabled.checked)) {
+                // If filters were restored and any are active, perform search
+                performSearch();
+            } else {
+                // Load default logs
+                loadLogs();
+            }
+            
+            // Start auto-refresh if enabled
+            if (isAutoRefreshEnabled) {
+                startAutoRefresh();
+            }
         });
 
         // Cleanup on page unload

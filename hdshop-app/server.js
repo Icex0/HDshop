@@ -106,7 +106,7 @@ app.use((req, res, next) => {
 // Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Access logs viewing endpoint
+// Simple access logs endpoint - just returns raw log data
 app.get('/api/access-logs', (req, res) => {
     // Set CORS headers explicitly for this endpoint
     res.header('Access-Control-Allow-Origin', '*');
@@ -117,11 +117,12 @@ app.get('/api/access-logs', (req, res) => {
         const logPath = path.join(logsDir, 'access.log');
         if (fs.existsSync(logPath)) {
             const logs = fs.readFileSync(logPath, 'utf8');
-            const logLines = logs.split('\n').filter(line => line.trim() !== '').slice(-100); // Last 100 lines
+            const allLogLines = logs.split('\n').filter(line => line.trim() !== '');
+            
             res.json({
                 success: true,
-                logs: logLines,
-                total: logLines.length
+                logs: allLogLines,
+                total: allLogLines.length
             });
         } else {
             res.json({
@@ -132,6 +133,7 @@ app.get('/api/access-logs', (req, res) => {
             });
         }
     } catch (error) {
+        console.error('Error reading access logs:', error);
         res.status(500).json({
             success: false,
             error: 'Failed to read access logs'

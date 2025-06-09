@@ -42,18 +42,123 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-// Endpoint to fetch logs from the main application
+// Endpoint to fetch and search logs from the main application
 app.get('/api/logs', async (req, res) => {
     try {
-        console.log(`Fetching logs from: ${MAIN_APP_URL}/api/access-logs`);
+        console.log(`Fetching raw logs from: ${MAIN_APP_URL}/api/access-logs`);
         
-        // Fetch logs from main application (no authentication needed)
+        // Fetch raw logs from main application (no authentication needed)
         const response = await axios.get(`${MAIN_APP_URL}/api/access-logs`, {
             timeout: 10000 // 10 second timeout
         });
 
-        console.log('Successfully fetched logs:', response.data.total || 0, 'entries');
-        res.json(response.data);
+        if (!response.data.success) {
+            return res.status(500).json(response.data);
+        }
+
+        const allLogLines = response.data.logs || [];
+        const totalLogsInFile = allLogLines.length;
+
+        console.log('Successfully fetched raw logs:', totalLogsInFile, 'entries');
+        console.log('Search parameters:', req.query);
+
+        // Get search parameters
+        const searchTerm = req.query.search;
+        const caseSensitive = req.query.caseSensitive === 'true';
+        const regexSearch = req.query.regex === 'true';
+        const postDataOnly = req.query.postDataOnly === 'true';
+        const excludePattern = req.query.exclude;
+        const maxResults = parseInt(req.query.limit) || 100;
+
+        let resultLogs = allLogLines;
+
+        // If no search term, return last 100 logs (default behavior)
+        if (!searchTerm && !excludePattern && !postDataOnly) {
+            resultLogs = allLogLines.slice(-maxResults);
+            res.json({
+                success: true,
+                logs: resultLogs,
+                total: resultLogs.length,
+                totalInFile: totalLogsInFile,
+                searchApplied: false
+            });
+            return;
+        }
+
+        // Apply POST data filter first if requested
+        if (postDataOnly) {
+            resultLogs = resultLogs.filter(log => log.includes('POST'));
+        }
+
+        // Apply exclude filter if provided
+        if (excludePattern && excludePattern.trim()) {
+            try {
+                const excludePatterns = excludePattern.split(',').map(p => p.trim()).filter(p => p);
+                resultLogs = resultLogs.filter(log => {
+                    let logText = caseSensitive ? log : log.toLowerCase();
+                    let excludeText = caseSensitive ? excludePattern : excludePattern.toLowerCase();
+
+                    if (regexSearch) {
+                        try {
+                            const regex = new RegExp(excludeText, caseSensitive ? 'g' : 'gi');
+                            return !regex.test(logText);
+                        } catch (e) {
+                            return !logText.includes(excludeText);
+                        }
+                    } else {
+                        return !excludePatterns.some(pattern => {
+                            const patternText = caseSensitive ? pattern : pattern.toLowerCase();
+                            if (pattern.includes(' AND ')) {
+                                const andTerms = pattern.split(' AND ').map(term => term.trim());
+                                return andTerms.every(term => logText.includes(caseSensitive ? term : term.toLowerCase()));
+                            } else {
+                                return logText.includes(patternText);
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Exclude filter error:', error);
+            }
+        }
+
+        // Apply search filter if provided
+        if (searchTerm && searchTerm.trim()) {
+            try {
+                resultLogs = resultLogs.filter(log => {
+                    let logText = caseSensitive ? log : log.toLowerCase();
+                    let searchText = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+
+                    if (regexSearch) {
+                        try {
+                            const regex = new RegExp(searchText, caseSensitive ? 'g' : 'gi');
+                            return regex.test(logText);
+                        } catch (e) {
+                            return logText.includes(searchText);
+                        }
+                    } else {
+                        return logText.includes(searchText);
+                    }
+                });
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        // Limit results for performance (but keep all matches information)
+        const totalMatches = resultLogs.length;
+        const limitedResults = resultLogs.slice(-maxResults); // Get the most recent matches
+
+        res.json({
+            success: true,
+            logs: limitedResults,
+            total: limitedResults.length,
+            totalMatches: totalMatches,
+            totalInFile: totalLogsInFile,
+            searchApplied: true,
+            searchTerm: searchTerm,
+            truncated: totalMatches > maxResults
+        });
     } catch (error) {
         console.error('Error fetching logs:', error.message);
         
