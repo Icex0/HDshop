@@ -1,13 +1,13 @@
 # HDshop
 
 ## Tech ##
-- HDshop app exposed at port `0.0.0.0:3000`
+- HDshop app exposed at `0.0.0.0:3000`
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL at `172.20.0.30:5432`
   - Swagger UI accessible at `/api-docs` (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
   - `access.log` can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
-- Log monitor application at port `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
+- Log monitor application at `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
   - Includes 2 API endpoints:
     - /api/logs
     - /api/health
@@ -24,6 +24,7 @@
 - 🔎 **Username Enumeration** in login and registration functions
 - 💣 **Error-Based SQL Injection**  
   - Affects: `login` > `username` field
+- 🕒 **No login rate limit**
 - 🍪 **Session Cookie Missing Flags**
   - Missing `HttpOnly` and `Secure` and `SameSite` attributes
 - 🛡️ **Missing all Security Headers**
@@ -53,9 +54,9 @@
   - No server-side validation on product pricing and total price
 - 🧯 **Verbose errors in production**
 - 🛠️ **Change user settings without requiring current password**
-- 📂 **Passwords stored in plaintext**
-- 🧾 **Default credentials > Postgres and webapp**
-- 📤 **Weak (client-side only) upload restrictions > SVG upload with XSS etc.**
+- 🔓 **Passwords stored in plaintext**
+- 🧾 **Default credentials for Postgres**
+- 📤 **Weak (client-side only) upload restrictions > SVG upload with XSS etc**
 - 🆔 **Simple Identifiers (no UUIDv4)**
 - 🛡️ **Vulnerable CORS configuration on all (API) endpoints**
   - Access-Control-Allow-Crendentials (ACAC) on true > Access-Control-Allow-Credentials: true
@@ -68,7 +69,7 @@
 - 📂 **LFI - Local file inclusion**
   - Legacy API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
-- ⚠️SSRF (Server-Side Request Forgery)
+- 🌐 **SSRF (Server-Side Request Forgery)**
   - Fetch profile image from URL without validation > `POST /api/user/6/image/fetch-url`, which includes the parameter `imageUrl`
   - Use the burp collab URL and report the HTTP request made to it (minimal impact shown)
   - The internal docker subnet range (`172.20.0.0/16`) and the internal IP of the HDshop (`172.20.0.10`) can be retrieved from `/api/settings` (request is also made after login)
