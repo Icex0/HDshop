@@ -5,9 +5,9 @@
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL
-  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint /api/user/<ID>/image)
+  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoint /api/user/<ID>/image and /api/user/<ID>/image/fetch-url)
   - access.log persisted in Docker volume `hdapp_app_logs` (or use the log monitor app)
-- Log monitor application at port `3050` (you can filter for requests etc)
+- Log monitor application at port `80` (you can filter for requests etc)
   - Includes 2 API endpoints:
     - http://localhost:3050/api/logs
     - http://localhost:3050/api/health
@@ -61,7 +61,12 @@
   - Legacy API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
 - ⚠️SSRF (Server-Side Request Forgery)
-  - Fetch profile image from URL
+  - Fetch profile image from URL without validation > `POST /api/user/6/image/fetch-url`, which includes the parameter `imageUrl`
+  - Use the burp collab URL and report the HTTP request made to it (minimal impact shown)
+  - The internal docker subnet range (`172.20.0.0/16`) and the internal IP of the HDshop (`172.20.0.10`) can be retrieved from `/api/settings` (request is also made after login)
+  - By fuzzing or guessing, a user can find the IP (`172.20.0.20`) of the Security log Monitor app on port 80 > SSRF: `"imageUrl":"http://172.20.0.20"`
+  - The response includes the base64 encoded `index.html` of the Security Log Monitor app, which includes `const response = await fetch('/api/logs')` (can ofc also be found by fuzzing)
+  - Max impact can be shown by making SSRF to `"imageUrl":"http://172.20.0.20/api/logs"` (these logs contain cleartext passwords!)
 ---
 
 ![logging app](./images/log-monitor.png)
