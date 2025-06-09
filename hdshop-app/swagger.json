@@ -1,12 +1,12 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Vulnerable Application API",
-    "description": "API documentation for the vulnerable by design web application",
+    "title": "HDshop API",
+    "description": "API documentation for HDshop",
     "version": "1.0.0",
     "contact": {
-      "name": "Vulnerable App",
-      "email": "admin@vulnerableapp.com"
+      "name": "HDshop",
+      "email": "admin@example.com"
     }
   },
   "servers": [

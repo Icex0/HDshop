@@ -117,7 +117,6 @@
             // Get ErrorMessage parameter or set default
             var rawErrorMessage = urlParams.get('ErrorMessage') || 'The page you are looking for could not be found.';
             
-            // Vulnerable: Trust HTML content without sanitization - allows XSS
             $scope.errorMessage = $sce.trustAsHtml(rawErrorMessage);
             
             // Get optional ErrorCode parameter
@@ -143,7 +142,6 @@
                     default:
                         defaultMessage = 'An unexpected error occurred. Please try again.';
                 }
-                // Vulnerable: Trust default HTML content without sanitization
                 $scope.errorMessage = $sce.trustAsHtml(defaultMessage);
             }
         });
