@@ -265,7 +265,7 @@ angular.module('vulnerableApp', [])
                 });
         };
     })
-    .controller('ProfileController', function($scope, $http, $window, $timeout) {
+    .controller('ProfileController', function($scope, $http, $window, $timeout, $sce, $interpolate) {
         // Check session and get user ID
         $http.get('/api/session')
             .then(function(response) {
@@ -277,7 +277,6 @@ angular.module('vulnerableApp', [])
                         .then(function(response) {
                             $scope.user = response.data.user;
                             
-                            // Also call the image endpoint (for LFI testing)
                             // If no profile image, leave file parameter empty
                             const fileParam = $scope.user.profile_image ? '' : '';
                             $http.get('/api/user/' + userId + '/image?file=' + fileParam)
@@ -299,7 +298,22 @@ angular.module('vulnerableApp', [])
                     // Fetch order history
                     $http.get('/api/user/' + userId + '/orders')
                         .then(function(response) {
-                            $scope.orders = response.data.orders;
+                            $scope.orders = response.data.orders.map(function(order) {
+                                if (order.items && order.items.length > 0) {
+                                    order.items = order.items.map(function(item) {
+                                        try {
+                                            // This allows CSTI by interpreting {{}} expressions
+                                            const interpolatedName = $interpolate(item.name)($scope);
+                                            item.displayName = interpolatedName !== undefined ? String(interpolatedName) : item.name;
+                                        } catch (e) {
+                                            // If interpolation fails, fall back to original name
+                                            item.displayName = item.name;
+                                        }
+                                        return item;
+                                    });
+                                }
+                                return order;
+                            });
                         })
                         .catch(function(error) {
                             console.error('Error fetching orders:', error);
@@ -402,7 +416,7 @@ angular.module('vulnerableApp', [])
             const file = input.files[0];
             if (!file) return;
 
-            // Client-side file type validation
+            // file type validation
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
             if (!allowedTypes.includes(file.type)) {
                 $scope.$apply(function() {

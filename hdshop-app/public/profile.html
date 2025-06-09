@@ -327,10 +327,10 @@
                     <span class="order-date">{{order.created_at | date:'medium'}}</span>
                 </div>
                 <div class="order-items">
-                    <div class="order-item" ng-repeat="item in order.items">
+                    <div class="order-item" ng-repeat="item in order.items track by $index">
                         <img ng-src="{{item.image}}" alt="{{item.name}}">
                         <div class="order-item-details">
-                            <p class="order-item-name">{{item.name}}</p>
+                            <p class="order-item-name">{{item.displayName}}</p>
                             <p class="order-item-price">${{item.price}} x {{item.quantity || 1}}</p>
                         </div>
                     </div>
