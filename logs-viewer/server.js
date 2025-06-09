@@ -108,8 +108,8 @@ async function testConnection() {
     }
 }
 
-app.listen(port, () => {
-    console.log(`🔍 Log Viewer running at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`🔍 Log Viewer running at http://0.0.0.0:${port}`);
     console.log(`🔗 Main app URL: ${MAIN_APP_URL}`);
     
     // Test connection after a short delay

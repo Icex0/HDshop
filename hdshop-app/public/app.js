@@ -6,14 +6,14 @@ angular.module('vulnerableApp', [])
         };
 
         $scope.login = function() {
-            $http.post('http://localhost:3000/api/login', $scope.credentials)
+            $http.post('/api/login', $scope.credentials)
                 .then(function(response) {
                     $scope.success = response.data.success;
                     $scope.message = response.data.message;
                     
                     if (response.data.success) {
                         // Fetch application settings after successful login
-                        $http.get('http://localhost:3000/api/settings')
+                        $http.get('/api/settings')
                             .then(function(settingsResponse) {
 
                                 console.log('Application settings loaded:', settingsResponse.data);
@@ -40,7 +40,7 @@ angular.module('vulnerableApp', [])
         };
 
         $scope.register = function() {
-            $http.post('http://localhost:3000/api/register', $scope.user)
+            $http.post('/api/register', $scope.user)
                 .then(function(response) {
                     $scope.success = response.data.success;
                     $scope.message = response.data.message;
@@ -58,7 +58,7 @@ angular.module('vulnerableApp', [])
     })
     .controller('ShopController', function($scope, $http, $window, $sce) {
         // Check session
-        $http.get('http://localhost:3000/api/session')
+        $http.get('/api/session')
             .then(function(response) {
                 if (response.data.success) {
                     $scope.user = response.data.user;
@@ -174,7 +174,7 @@ angular.module('vulnerableApp', [])
     })
     .controller('CheckoutController', function($scope, $http, $window, $sce) {
         // Check session
-        $http.get('http://localhost:3000/api/session')
+        $http.get('/api/session')
             .then(function(response) {
                 if (response.data.success) {
                     $scope.user = response.data.user;
@@ -233,7 +233,7 @@ angular.module('vulnerableApp', [])
                 total: $scope.getTotal()
             };
 
-            $http.post('http://localhost:3000/api/purchase', purchaseData)
+            $http.post('/api/purchase', purchaseData)
                 .then(function(response) {
                     if (response.data.success) {
                         $scope.success = true;

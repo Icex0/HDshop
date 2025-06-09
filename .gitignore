@@ -29,3 +29,4 @@ Thumbs.db
 # Application specific
 hdshop-app/public/uploads/
 logs/access.log
+hdshop-app/logs/access.log
