@@ -601,6 +601,7 @@ app.get('/api/user/:userId/orders', async (req, res) => {
   }
 });
 
+
 // Vulnerable: SSRF - Fetch profile image from URL endpoint
 app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
     const sessionId = req.cookies.sessionId;

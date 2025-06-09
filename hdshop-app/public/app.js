@@ -474,7 +474,7 @@ angular.module('vulnerableApp', [])
             });
         };
     })
-    .controller('AdminController', function($scope, $http, $window, $timeout, $sce) {
+    .controller('AdminController', function($scope, $http, $window, $timeout, $sce, $interpolate) {
         // Check if user is admin
         $http.get('/api/session')
             .then(function(response) {
@@ -579,6 +579,53 @@ angular.module('vulnerableApp', [])
         $scope.getUserCount = function() {
             if (!$scope.users) return 0;
             return $scope.users.filter(user => user.role === 'user').length;
+        };
+
+        $scope.viewUserOrders = function(userId, username) {
+            $scope.selectedUserId = userId;
+            $scope.selectedUserName = username;
+            $scope.showOrders = true;
+            $scope.loadingOrders = true;
+            $scope.userOrders = [];
+            
+            // Fetch orders for the selected user
+            $http.get('/api/user/' + userId + '/orders')
+                .then(function(response) {
+                    if (response.data.success) {
+                        $scope.userOrders = response.data.orders.map(function(order) {
+                            if (order.items && order.items.length > 0) {
+                                order.items = order.items.map(function(item) {
+                                    try {
+                                        // Use $interpolate to evaluate expressions in item names
+                                        const interpolatedName = $interpolate(item.name)($scope);
+                                        item.displayName = interpolatedName !== undefined ? String(interpolatedName) : item.name;
+                                    } catch (e) {
+                                        // If interpolation fails, fall back to original name
+                                        item.displayName = item.name;
+                                    }
+                                    return item;
+                                });
+                            }
+                            return order;
+                        });
+                    } else {
+                        $scope.showNotification('Error loading orders: ' + response.data.message, false);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading user orders:', error);
+                    $scope.showNotification('Error loading user orders', false);
+                })
+                .finally(function() {
+                    $scope.loadingOrders = false;
+                });
+        };
+
+        $scope.closeOrders = function() {
+            $scope.showOrders = false;
+            $scope.userOrders = [];
+            $scope.selectedUserId = null;
+            $scope.selectedUserName = null;
         };
 
         $scope.showNotification = function(message, isSuccess) {
