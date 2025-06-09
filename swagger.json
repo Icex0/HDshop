@@ -165,6 +165,56 @@
         }
       }
     },
+    "/api/settings": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get application settings",
+        "description": "Retrieve application configuration and network settings",
+        "responses": {
+          "200": {
+            "description": "Application settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "settings": {
+                    "network": {
+                      "internalIp": "172.20.0.10",
+                      "subnet": "172.20.0.0/16",
+                      "gateway": "172.20.0.1",
+                      "containerName": "hdapp-app-1"
+                    },
+                    "internalServices": {
+                      "database": "postgres",
+                      "logMonitor": "logs-viewer",
+                      "mainApp": "hdapp-app"
+                    },
+                    "application": {
+                      "name": "HDshop",
+                      "version": "1.0.0",
+                      "buildTime": "2024-01-15T10:30:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/user/{userId}": {
       "get": {
         "tags": ["User Management"],
@@ -575,6 +625,75 @@
           "newPassword": {
             "type": "string",
             "description": "New password to set for the user"
+          }
+        }
+      },
+      "SettingsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful"
+          },
+          "settings": {
+            "type": "object",
+            "properties": {
+              "network": {
+                "type": "object",
+                "properties": {
+                  "internalIp": {
+                    "type": "string",
+                    "description": "Container internal IP address"
+                  },
+                  "subnet": {
+                    "type": "string",
+                    "description": "Docker network subnet"
+                  },
+                  "gateway": {
+                    "type": "string",
+                    "description": "Docker network gateway"
+                  },
+                  "containerName": {
+                    "type": "string",
+                    "description": "Container name"
+                  }
+                }
+              },
+              "internalServices": {
+                "type": "object",
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "description": "Database service name"
+                  },
+                  "logMonitor": {
+                    "type": "string",
+                    "description": "Log monitoring service name"
+                  },
+                  "mainApp": {
+                    "type": "string",
+                    "description": "Main application service name"
+                  }
+                }
+              },
+              "application": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Application name"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Application version"
+                  },
+                  "buildTime": {
+                    "type": "string",
+                    "description": "Application build timestamp"
+                  }
+                }
+              }
+            }
           }
         }
       },

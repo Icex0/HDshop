@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Exposed on all interfaces for external access
     environment:
       - NODE_ENV=development
       - DB_USER=postgres
@@ -19,26 +19,28 @@ services:
       - /app/node_modules
       - app_logs:/app/logs
     networks:
-      - app-network
+      app-network:
+        ipv4_address: 172.20.0.10
 
   logs-viewer:
     build:
       context: ./logs-viewer
       dockerfile: Dockerfile
     ports:
-      - "3050:3050"
+      - "127.0.0.1:80:80"  # Only internal access
     environment:
       - NODE_ENV=development
       - MAIN_APP_URL=http://app:3000
     depends_on:
       - app
     networks:
-      - app-network
+      app-network:
+        ipv4_address: 172.20.0.20 # Static IP for SSRF
 
   postgres:
     image: postgres:17
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Only internal access
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -47,7 +49,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql
     networks:
-      - app-network
+      app-network:
+        ipv4_address: 172.20.0.30
 
 volumes:
   postgres_data:
@@ -55,4 +58,8 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge 
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1 

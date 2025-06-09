@@ -4,7 +4,7 @@ const axios = require('axios');
 const path = require('path');
 
 const app = express();
-const port = 3050;
+const port = 80;
 
 // Configuration
 const MAIN_APP_URL = process.env.MAIN_APP_URL || 'http://app:3000';
@@ -16,7 +16,19 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware to prevent caching on static files
+// This ensures static files return 200 OK instead of 304 Not Modified
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: function (res, path, stat) {
+        res.set({
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Surrogate-Control': 'no-store'
+        });
+    }
+}));
 
 // Middleware to prevent caching on all API endpoints
 // This ensures all API responses return 200 OK instead of 304 Not Modified
@@ -72,6 +84,13 @@ app.get('/api/health', (req, res) => {
 
 // Serve the main log viewer page
 app.get('/', (req, res) => {
+    // Set cache-control headers to prevent 304 responses
+    res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+    });
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

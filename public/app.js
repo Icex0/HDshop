@@ -12,7 +12,18 @@ angular.module('vulnerableApp', [])
                     $scope.message = response.data.message;
                     
                     if (response.data.success) {
-                        $window.location.href = '/shop.html';
+                        // Fetch application settings after successful login
+                        $http.get('http://localhost:3000/api/settings')
+                            .then(function(settingsResponse) {
+
+                                console.log('Application settings loaded:', settingsResponse.data);
+                                $window.location.href = '/shop.html';
+                            })
+                            .catch(function(settingsError) {
+                                console.error('Failed to load settings:', settingsError);
+                                // Continue to shop even if settings fail
+                                $window.location.href = '/shop.html';
+                            });
                     }
                 })
                 .catch(function(error) {
@@ -102,7 +113,7 @@ angular.module('vulnerableApp', [])
             {
                 id: 6,
                 name: 'Shower Cat',
-                description: 'An adventurous cat ready for new experiences and discoveries.',
+                description: 'An adventurous cat ready for new experiences and discoveries. Buy me!',
                 price: 159.99,
                 image: '/assets/images/cat6.jpg'
             }
@@ -314,7 +325,7 @@ angular.module('vulnerableApp', [])
             const data = {
                 username: $scope.user.username,
                 email: $scope.user.email,
-                role: $scope.user.role // Vulnerable: Include role parameter (hidden from UI but modifiable)
+                role: $scope.user.role
             };
 
             if ($scope.currentPassword && $scope.newPassword) {
@@ -349,6 +360,42 @@ angular.module('vulnerableApp', [])
 
         $scope.goToAdmin = function() {
             $window.location.href = '/admin.html';
+        };
+
+        $scope.fetchImageFromUrl = function() {
+            if (!$scope.imageUrl || $scope.imageUrl.trim() === '') {
+                $scope.showNotification('Please enter a valid URL', false);
+                return;
+            }
+
+            $scope.fetchingImage = true;
+            $scope.showNotification('Fetching image from URL...', true);
+
+            $http.post('/api/user/' + $scope.user.id + '/image/fetch-url', {
+                imageUrl: $scope.imageUrl
+            })
+            .then(function(response) {
+                if (response.data.success) {
+                    $timeout(function() {
+                        // Update the profile image with cache-busting
+                        $scope.user.profile_image = response.data.imagePath + '?t=' + Date.now() + Math.random();
+                        $scope.showNotification('Profile image updated from URL successfully', true);
+                        $scope.imageUrl = ''; // Clear the URL input
+                    });
+                    $timeout(function() {
+                        $scope.message = '';
+                    }, 3000);
+                } else {
+                    $scope.showNotification(response.data.message || 'Error fetching image from URL', false);
+                }
+            })
+            .catch(function(error) {
+                console.error('Error fetching image from URL:', error);
+                $scope.showNotification(error.data?.message || 'Error fetching image from URL', false);
+            })
+            .finally(function() {
+                $scope.fetchingImage = false;
+            });
         };
 
         $scope.uploadImage = function(input) {

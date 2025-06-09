@@ -364,6 +364,52 @@ app.post('/api/profile/update', async (req, res) => {
   }
 });
 
+// Vulnerable: Settings endpoint exposing internal network configuration
+app.get('/api/settings', (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  if (!sessionId || !sessions.has(sessionId)) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated'
+    });
+  }
+
+  try {
+    // Vulnerable: Exposing internal network configuration and sensitive data
+    res.json({
+      success: true,
+      settings: {
+        // Vulnerable: Exposing internal Docker network details
+        network: {
+          internalIp: "172.20.0.10",
+          subnet: "172.20.0.0/16",
+          gateway: "172.20.0.1",
+          containerName: "hdapp-app-1"
+        },
+        // Vulnerable: Exposing internal service names
+        internalServices: {
+          database: "postgres",
+          logMonitor: "logs-viewer",
+          mainApp: "hdapp-app"
+        },
+        // Vulnerable: Exposing application configuration
+        application: {
+          name: "HDshop",
+          version: "1.0.0",
+          buildTime: "2024-01-15T10:30:00Z"
+        }
+      }
+    });
+  } catch (error) {
+    // Vulnerable: Exposing detailed error information
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Session check endpoint
 app.get('/api/session', (req, res) => {
   const sessionId = req.cookies.sessionId;
@@ -551,6 +597,178 @@ app.get('/api/user/:userId/orders', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Vulnerable: SSRF - Fetch profile image from URL endpoint
+app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated'
+        });
+    }
+
+    try {
+        const session = sessions.get(sessionId);
+        const { imageUrl } = req.body;
+
+        // Vulnerable: No URL validation or filtering
+        // This allows SSRF attacks to internal services
+        if (!imageUrl || imageUrl.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Image URL is required'
+            });
+        }
+
+        console.log(`Attempting SSRF request to: ${imageUrl}`);
+
+        // Vulnerable: No restrictions on URL schemes or hosts
+        // Allows access to:
+        // - Internal services (http://localhost:8080/admin)
+        // - File system (file:///etc/passwd)
+        // - Cloud metadata (http://169.254.169.254/latest/meta-data/)
+        // - Internal networks (http://192.168.1.1/)
+        
+        const https = require('https');
+        const http = require('http');
+        const { URL } = require('url');
+
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(imageUrl);
+        } catch (urlError) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid URL format'
+            });
+        }
+
+        // Vulnerable: No filtering of dangerous protocols or hosts
+        const client = parsedUrl.protocol === 'https:' ? https : http;
+        
+        const options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'GET',
+            timeout: 10000, // 10 second timeout
+            headers: {
+                'User-Agent': 'VulnerableApp/1.0 (Profile Image Fetcher)'
+            }
+        };
+
+        const request = client.request(options, (response) => {
+            let data = Buffer.alloc(0);
+            
+            // Vulnerable: No size limits on response
+            response.on('data', (chunk) => {
+                data = Buffer.concat([data, chunk]);
+                
+                // Basic size limit to prevent memory exhaustion
+                if (data.length > 10 * 1024 * 1024) { // 10MB limit
+                    request.destroy();
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Response too large'
+                    });
+                }
+            });
+
+            response.on('end', () => {
+                // Vulnerable: Exposing response details including internal service responses
+                console.log(`SSRF Response from ${imageUrl}: Status ${response.statusCode}, Size: ${data.length} bytes`);
+                
+                if (response.statusCode !== 200) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Failed to fetch image: HTTP ${response.statusCode}`,
+                        // Vulnerable: Exposing internal response data
+                        responseBody: data.toString('utf8').substring(0, 500),
+                        responseHeaders: response.headers,
+                        // Vulnerable: Exposing full response content even on errors
+                        content: data.toString('base64'), // Full content in base64
+                        contentPreview: data.toString('utf8').substring(0, 1000), // Text preview
+                        statusCode: response.statusCode,
+                        sourceUrl: imageUrl
+                    });
+                }
+
+                // Save the fetched image
+                const filename = `fetched_${Date.now()}_${Math.random().toString(36).substring(2)}.jpg`;
+                const filepath = path.join(uploadsDir, filename);
+                
+                fs.writeFile(filepath, data, (writeError) => {
+                    if (writeError) {
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Failed to save image'
+                        });
+                    }
+
+                    const imagePath = '/uploads/' + filename;
+                    
+                    // Update user's profile image in database
+                    const query = 'UPDATE users SET profile_image = $1 WHERE id = $2 RETURNING profile_image';
+                    pool.query(query, [imagePath, req.params.userId])
+                        .then(result => {
+                            res.json({
+                                success: true,
+                                message: 'Profile image updated from URL successfully',
+                                imagePath: result.rows[0].profile_image,
+                                // Vulnerable: Exposing internal details
+                                sourceUrl: imageUrl,
+                                responseSize: data.length,
+                                // Vulnerable: Exposing raw response content - major SSRF data exfiltration
+                                content: data.toString('base64'), // Base64 encode for safe transport
+                                contentPreview: data.toString('utf8').substring(0, 1000) // First 1000 chars as text
+                            });
+                        })
+                        .catch(dbError => {
+                            res.status(500).json({
+                                success: false,
+                                message: 'Failed to update database'
+                            });
+                        });
+                });
+            });
+        });
+
+        request.on('error', (error) => {
+            // Vulnerable: Exposing detailed error information that may reveal internal network structure
+            console.error(`SSRF Error for ${imageUrl}:`, error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to fetch image from URL',
+                error: error.message,
+                code: error.code,
+                // Vulnerable: Exposing network-level error details
+                errno: error.errno,
+                syscall: error.syscall,
+                address: error.address,
+                port: error.port
+            });
+        });
+
+        request.on('timeout', () => {
+            request.destroy();
+            res.status(408).json({
+                success: false,
+                message: 'Request timeout while fetching image'
+            });
+        });
+
+        request.end();
+
+    } catch (error) {
+        // Vulnerable: Exposing detailed error information
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
 });
 
 // Vulnerable: Profile image upload endpoint

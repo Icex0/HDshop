@@ -2,7 +2,7 @@
 <html ng-app="vulnerableApp">
 <head>
     <title>User Profile</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="js/angular.min.js"></script>
     <script src="app.js"></script>
     <style>
         body {
@@ -277,8 +277,23 @@
             <div ng-if="!user.profile_image" class="default-avatar">
                 {{user.username.charAt(0).toUpperCase()}}
             </div>
-            <label for="profileImage">Change Profile Picture</label>
+            <label for="profileImage">Upload Profile Picture</label>
             <input type="file" id="profileImage" accept="image/*" onchange="angular.element(this).scope().uploadImage(this)">
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #404060;">
+                <div style="margin-bottom: 10px; color: #b0b0c0; font-weight: bold;">Or fetch from URL:</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="url" id="imageUrl" ng-model="imageUrl" placeholder="https://example.com/image.jpg" 
+                           style="flex: 1; margin-bottom: 0;">
+                    <button type="button" ng-click="fetchImageFromUrl()" 
+                            style="padding: 12px 16px; white-space: nowrap;">
+                        Fetch Image
+                    </button>
+                </div>
+                <small style="color: #b0b0c0; font-size: 12px; margin-top: 5px; display: block;">
+                    Enter a URL to fetch and set as your profile image
+                </small>
+            </div>
         </div>
 
         <form ng-submit="updateProfile()">
