@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: .
+      context: ./hdshop-app
       dockerfile: Dockerfile
     ports:
       - "3000:3000"  # Exposed on all interfaces for external access
@@ -15,7 +15,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - .:/app
+      - ./hdshop-app:/app
       - /app/node_modules
       - app_logs:/app/logs
     networks:

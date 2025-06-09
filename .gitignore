@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+hdshop-app/node_modules/
+logs-viewer/node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
@@ -23,5 +25,7 @@ yarn-error.log
 .Trashes
 ehthumbs.db
 Thumbs.db 
-/public/uploads
+
+# Application specific
+hdshop-app/public/uploads/
 logs/access.log

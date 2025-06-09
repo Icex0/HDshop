@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 -- Insert test users if they don't exist
 INSERT INTO users (username, email, password, role)
-SELECT 'admin', 'admin@example.com', 'Rickiskoning123', 'admin'
+SELECT 'admin', 'admin@example.com', 'Verysecurepassword@1', 'admin'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
 
 INSERT INTO users (username, email, password, role)

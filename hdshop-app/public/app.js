@@ -491,7 +491,6 @@ angular.module('vulnerableApp', [])
             $http.get('/api/users')
                 .then(function(response) {
                     if (response.data.success) {
-                        // Vulnerable: Trust username HTML content without sanitization - allows XSS
                         $scope.users = response.data.users.map(function(user) {
                             user.username = $sce.trustAsHtml(user.username);
                             return user;

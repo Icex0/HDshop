@@ -5,7 +5,7 @@
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL at `172.20.0.30:5432`
-  - Swagger UI accessible at `/api-doc`s (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
+  - Swagger UI accessible at `/api-docs` (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
   - `access.log` can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
 - Log monitor application at port `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
   - Includes 2 API endpoints:
@@ -36,7 +36,7 @@
   - X-Powered-By header discloses tech
 - 🦠 **XSS - Stored Cross-Site Scripting**
   - Vector: `username` via create user or update user settings
-  - Reflects twice on shop page and once in the admin panel
+  - Reflects 2x on shop page and 1x in the admin panel
 - 🦠 **XSS - Reflected Cross-Site Scripting**
    - Any mistyped path/file leads to `error.html` which reflects a user controlled `ErrorMessage` parameter > `/error.html?ErrorMessage=<img src=x>&ErrorCode=404`
 - 🧱 **Broken Access Control**
