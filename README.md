@@ -22,8 +22,13 @@
 
 - 🚫 **No HTTPS**
 - 🔎 **Username Enumeration** in login and registration functions
-- 💣 **Error-Based SQL Injection**  
+- 💣 **SQL Injection**  
   - Affects: `login` > `username` field
+  - Possible to bypass authentication with `pentest1' OR 1=1--`
+  - Stacked queries > for example `"username":"admin' ;SELECT PG_SLEEP(5)--"`
+  - boolean-based blind
+  - error-based
+  - time-based blind
 - 🕒 **No login rate limit**
 - 🍪 **Session Cookie Missing Flags**
   - Missing `HttpOnly` and `Secure` and `SameSite` attributes
