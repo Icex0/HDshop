@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:lts-bookworm-slim
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Expose port
-EXPOSE 3050
+EXPOSE 80
 
 # Start the application
 CMD ["npm", "start"] 
