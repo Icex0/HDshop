@@ -82,13 +82,16 @@
 - 📂 **LFI - Local file inclusion**
   - Legacy API endpoint for profile image retrieval > `GET /api/user/<ID>/image?file=../../../etc/passwd`
   - `../../docker-compose.yml` contains credentials but you would have to fuzz for it
-- 🌐 **SSRF (Server-Side Request Forgery)**
+- 🌐 **SSRF - Server-Side Request Forgery**
   - Fetch profile image from URL without validation > `POST /api/user/6/image/fetch-url`, which includes the parameter `imageUrl`
   - Use the burp collab URL and report the HTTP request made to it (minimal impact shown)
   - The internal docker subnet range (`172.20.0.0/16`) and the internal IP of the HDshop (`172.20.0.10`) can be retrieved from `/api/settings` (request is also made after login)
   - By fuzzing or guessing, a user can find the IP (`172.20.0.20`) of the Security log Monitor app on port 80 > SSRF: `"imageUrl":"http://172.20.0.20"`
   - The response includes the base64 encoded `index.html` of the Security Log Monitor app, which includes `const response = await fetch('/api/logs')` (can ofc also be found by fuzzing)
   - Max impact can be shown by making SSRF to `"imageUrl":"http://172.20.0.20/api/logs"` (these logs contain cleartext passwords!)
+- 🧩 CSTI - Client-side template injection (AngularJS)
+  - In `POST /api/purchase` the `name` parameter does not validate input and can contain `{{7*7}}` which results in 49 on the profile page - Order history
+  - The CSTI can be used to perform XSS > `"name":"{{constructor.constructor('alert(document.cookie)')()}}"`
 ---
 
 ![logging app](./images/log-monitor.png)
