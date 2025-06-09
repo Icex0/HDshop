@@ -27,7 +27,7 @@ services:
       context: ./logs-viewer
       dockerfile: Dockerfile
     ports:
-      - "80:80"  # Only internal access
+      - "127.0.0.1:80:80"  # Only internal access
     environment:
       - NODE_ENV=development
       - MAIN_APP_URL=http://app:3000
