@@ -122,13 +122,15 @@
 
 ---
 
-![logging app](./images/log-monitor.png)
-
 ![hdshop](./images/shop.png)
 
 ![profile](./images/profile.png)
 
 ![admin](./images/admin.png)
+
+![logging app](./images/log-monitor.png)
+
+![logging](./images/logging.png)
 
 ## TODO:
 
