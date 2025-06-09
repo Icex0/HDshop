@@ -1,22 +1,28 @@
 # HDshop
 
-## Tech ##
+## HDshop ##
 - HDshop app exposed at `0.0.0.0:3000`
   - Express.js (node.js) backend
   - AngularJS frontend
   - PostgreSQL at `172.20.0.30:5432`
   - Swagger UI accessible at `/api-docs` (does not include the file upload API endpoints `GET and POST /api/user/<ID>/image` and `POST /api/user/<ID>/image/fetch-url`)
   - `access.log` can be found in docker volume `hdapp_app_logs` (or use the log monitor app)
-- Log monitor application at `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
-  - Includes 2 API endpoints:
-    - /api/logs
-    - /api/health
-  - If you don't care about the SSRF and only want to use it for logging you can expose it on `0.0.0.0` by removing `127.0.0.1` from the docker-compose file (or use it with the SSRF, reboot (logs are persisted) after CTF and remove `127.0.0.1`).
 - Docker-compose included to easily start and stop everything
   - `docker-compose up -d`
 - Default credentials (you can create more accounts):
   - pentest1:password
   - pentest2:password
+    
+## Log Monitor ##
+- Log monitor application at `172.20.0.20:80`. Used for logging of activity on HDshop app (also used for SSRF).
+  - Includes 2 API endpoints:
+    - /api/logs
+    - /api/health
+  - If you don't care about the SSRF and only want to use it for logging you can expose it on `0.0.0.0` by removing `127.0.0.1` from the docker-compose file (or use it with the SSRF, reboot (logs are persisted) after CTF and remove `127.0.0.1`)
+- Logging flow
+  - logs-viewer API > `GET /api/logs` every 10 seconds if auto-fresh is enabled (also includes search and exclude parameter)
+  - fetches from hdshop-app API > `GET /api/access-logs`
+  - `GET /api/access-logs` > reads from `/hdshop-app/logs/access.log`
 
 ## Includes the following vulnerabilities and misconfigurations:
 
