@@ -93,6 +93,35 @@
   - In `POST /api/purchase` the `name` parameter does not validate input and can contain `{{7*7}}` which results in 49 on the profile page - Order history
   - The CSTI can be used to perform XSS > `"name":"{{constructor.constructor('alert(document.cookie)')()}}"`
 ---
+## Risk estimate ##
+| #   | Vulnerability                                               | Risk Score   |
+| --- | ----------------------------------------------------------- | ------------ |
+| 1   | 💣 SQL Injection (login - stacked, error/time-based)        | **Critical** |
+| 2   | 🧱 Broken Access Control (IDOR, role escalation)            | **Critical** |
+| 3   | 🔐 Sensitive Data Exposure (config.json)                    | **Critical** |
+| 4   | 🦠 Stored XSS (username field)                              | **High**     |
+| 5   | 🔓 Passwords Stored in Plaintext                            | **High**     |
+| 6   | 🧾 Default Credentials for Postgres                         | **High**     |
+| 7   | 🛠️ CSRF (Cross-Site Request Forgery)                       | **High**     |
+| 8   | 📂 LFI - Local File Inclusion                               | **High**     |
+| 9   | 🌐 SSRF - Server-Side Request Forgery                       | **High**     |
+| 10  | 🚫 No HTTPS                                                 | High         |
+| 11  | 🦠 XSS - Reflected Cross-Site Scripting                     | High         |
+| 12  | 🧠 Logic Bugs (price manipulation)                          | High         |
+| 13  | 📤 Weak (client-side only) upload restrictions              | High         |
+| 14  | ⚠️ Outdated Swagger-UI (3.25.0) leads to XSS                | High         |
+| 15  | 🧩 CSTI - Client-side template injection (AngularJS)        | High         |
+| 16  | 🔎 Username Enumeration in login and registration functions | Medium       |
+| 17  | 🕒 No Login Rate Limit                                      | Medium       |
+| 18  | 🍪 Session Cookie Missing Flags                             | Medium       |
+| 19  | 🛠️ Change user settings without requiring current password | Medium       |
+| 20  | 🛡️ Vulnerable CORS Configuration                           | **Medium**   |
+| 21  | 🛡️ Missing all Security Headers                            | Low          |
+| 22  | 📦 Outdated JavaScript Libraries                            | Low          |
+| 23  | 🧯 Verbose errors in production                             | Low          |
+| 24  | 🆔 Simple Identifiers (no UUIDv4)                           | Info         |
+
+---
 
 ![logging app](./images/log-monitor.png)
 
