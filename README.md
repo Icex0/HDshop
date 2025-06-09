@@ -104,6 +104,6 @@
 
 ## TODO:
 
-- **CSTI**
 - **Open redirect**
+- **Change Postgres DBA priv**
 ---
