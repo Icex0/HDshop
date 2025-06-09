@@ -56,7 +56,7 @@
 - 🔐 **Sensitive Data Exposure**
   - Passwords and API keys present in `config.json`
 - 🧠 **Logic Bugs**
-  - No server-side validation on product pricing and total price
+  - No server-side validation on product `price` and `total` at `POST /api/purchase`
 - 🧯 **Verbose errors in production**
 - 🛠️ **Change user settings without requiring current password**
 - 🔓 **Passwords stored in plaintext**
