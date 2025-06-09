@@ -621,6 +621,27 @@ angular.module('vulnerableApp', [])
                 });
         };
 
+        $scope.deleteAllOrders = function(userId, username) {
+            if (confirm('Are you sure you want to delete ALL orders for user "' + username + '"? This action cannot be undone.')) {
+                $http.delete('/api/user/' + userId + '/orders')
+                    .then(function(response) {
+                        if (response.data.success) {
+                            $scope.showNotification(response.data.message, true);
+                            // If we're currently viewing this user's orders, refresh the view
+                            if ($scope.showOrders && $scope.selectedUserId === userId) {
+                                $scope.viewUserOrders(userId, username);
+                            }
+                        } else {
+                            $scope.showNotification(response.data.message || 'Error deleting orders', false);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error deleting orders:', error);
+                        $scope.showNotification(error.data?.message || 'Error deleting orders', false);
+                    });
+            }
+        };
+
         $scope.closeOrders = function() {
             $scope.showOrders = false;
             $scope.userOrders = [];

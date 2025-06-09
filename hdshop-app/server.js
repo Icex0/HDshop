@@ -601,6 +601,78 @@ app.get('/api/user/:userId/orders', async (req, res) => {
   }
 });
 
+// Secure: DELETE endpoint for admin to delete all orders for a user
+app.delete('/api/user/:userId/orders', async (req, res) => {
+  // Check for valid session
+  const sessionId = req.cookies.sessionId;
+  if (!sessionId || !sessions.has(sessionId)) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated'
+    });
+  }
+
+  try {
+    const session = sessions.get(sessionId);
+    
+    // Get current user's role from database to ensure it's up-to-date
+    const userRoleQuery = 'SELECT role FROM users WHERE id = $1';
+    const userRoleResult = await pool.query(userRoleQuery, [session.userId]);
+    
+    if (userRoleResult.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const currentUserRole = userRoleResult.rows[0].role;
+
+    // Check if user has admin privileges
+    if (currentUserRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin privileges required'
+      });
+    }
+
+    // Check if target user exists
+    const targetUserQuery = 'SELECT username FROM users WHERE id = $1';
+    const targetUserResult = await pool.query(targetUserQuery, [req.params.userId]);
+    
+    if (targetUserResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Target user not found'
+      });
+    }
+
+    const targetUsername = targetUserResult.rows[0].username;
+
+    // Count orders before deletion
+    const countQuery = 'SELECT COUNT(*) FROM orders WHERE user_id = $1';
+    const countResult = await pool.query(countQuery, [req.params.userId]);
+    const orderCount = parseInt(countResult.rows[0].count);
+
+    // Delete all orders for the specified user
+    const deleteQuery = 'DELETE FROM orders WHERE user_id = $1';
+    await pool.query(deleteQuery, [req.params.userId]);
+    
+    res.json({
+      success: true,
+      message: `Successfully deleted ${orderCount} orders for user "${targetUsername}"`,
+      deletedCount: orderCount,
+      username: targetUsername
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
 
 // Vulnerable: SSRF - Fetch profile image from URL endpoint
 app.post('/api/user/:userId/image/fetch-url', async (req, res) => {

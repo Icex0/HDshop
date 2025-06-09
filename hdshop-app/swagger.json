@@ -475,6 +475,64 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": ["User Management"],
+        "summary": "Delete all user orders",
+        "description": "Delete all orders for a specific user (Admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID whose orders to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orders deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteOrdersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/user/{userId}/reset-password": {
@@ -836,6 +894,27 @@
             "items": {
               "$ref": "#/components/schemas/Order"
             }
+          }
+        }
+      },
+      "DeleteOrdersResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Operation success status"
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message with deletion details"
+          },
+          "deletedCount": {
+            "type": "integer",
+            "description": "Number of orders deleted"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username of the user whose orders were deleted"
           }
         }
       },
