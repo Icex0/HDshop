@@ -16,7 +16,6 @@ angular.module('vulnerableApp', [])
                         $http.get('/api/settings')
                             .then(function(settingsResponse) {
 
-                                console.log('Application settings loaded:', settingsResponse.data);
                                 $window.location.href = '/shop.html';
                             })
                             .catch(function(settingsError) {

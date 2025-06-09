@@ -540,9 +540,6 @@ app.post('/api/purchase', async (req, res) => {
     const { items, total } = req.body;
 
     // Vulnerable: No validation of items or prices
-    // Vulnerable: No inventory check
-    // Vulnerable: No payment processing
-    // Vulnerable: No order tracking
     const orderQuery = `
       INSERT INTO orders (user_id, total_amount, items)
       VALUES ($1, $2, $3)
@@ -697,14 +694,7 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
             });
         }
 
-        console.log(`Attempting SSRF request to: ${imageUrl}`);
-
         // Vulnerable: No restrictions on URL schemes or hosts
-        // Allows access to:
-        // - Internal services (http://localhost:8080/admin)
-        // - File system (file:///etc/passwd)
-        // - Cloud metadata (http://169.254.169.254/latest/meta-data/)
-        // - Internal networks (http://192.168.1.1/)
         
         const https = require('https');
         const http = require('http');
@@ -753,7 +743,6 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
 
             response.on('end', () => {
                 // Vulnerable: Exposing response details including internal service responses
-                console.log(`SSRF Response from ${imageUrl}: Status ${response.statusCode}, Size: ${data.length} bytes`);
                 
                 if (response.statusCode !== 200) {
                     return res.status(400).json({
@@ -926,7 +915,6 @@ app.get('/api/user/:userId/image', async (req, res) => {
 
         // Vulnerable: No path validation or sanitization
         // This allows traversal attacks
-        console.log('Attempting to read file:', fullPath);
 
         // Check if file exists and read it
         if (fs.existsSync(fullPath)) {
@@ -1004,8 +992,6 @@ app.put('/api/user/:userId/reset-password', async (req, res) => {
 
         const currentUserRole = userRoleResult.rows[0].role;
 
-        // Vulnerable: Basic role check but no further authorization
-        // An admin can reset any user's password without knowing the current password
         if (currentUserRole !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -1059,7 +1045,6 @@ app.put('/api/user/:userId/reset-password', async (req, res) => {
     }
 });
 
-// Vulnerable: Delete user endpoint without proper authorization checks
 app.delete('/api/user/:userId', async (req, res) => {
     const sessionId = req.cookies.sessionId;
     if (!sessionId || !sessions.has(sessionId)) {
@@ -1086,8 +1071,6 @@ app.delete('/api/user/:userId', async (req, res) => {
 
         const currentUserRole = userRoleResult.rows[0].role;
 
-        // Vulnerable: Basic role check but no further authorization
-        // An admin can delete any user, including other admins
         if (currentUserRole !== 'admin') {
             return res.status(403).json({
                 success: false,

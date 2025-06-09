@@ -36,6 +36,7 @@
   - error-based
   - time-based blind
 - 🕒 **No login rate limit**
+- 🔓 **No password complexity requirements**
 - 🍪 **Session Cookie Missing Flags**
   - Missing `HttpOnly` and `Secure` and `SameSite` attributes
 - 🛡️ **Missing all Security Headers**
@@ -68,7 +69,7 @@
 - 🔓 **Passwords stored in plaintext**
 - 📦 **Outdated JavaScript libaries**
   - If Burp pro or Retire.js is used, you will also see that AngularJS (1.8.2) and DOMPurify (2.0.7) are outdated 
-- 🧾 **Default credentials for Postgres**
+- 🧾 **Default credentials for Postgres (if you expose this to 0.0.0.0)**
 - 📤 **Weak (client-side only) upload restrictions > SVG upload with XSS etc**
 - 🆔 **Simple Identifiers (no UUIDv4)**
 - 🛡️ **Vulnerable CORS configuration on all (API) endpoints**
