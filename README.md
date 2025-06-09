@@ -55,6 +55,8 @@
 - 🧯 **Verbose errors in production**
 - 🛠️ **Change user settings without requiring current password**
 - 🔓 **Passwords stored in plaintext**
+- 📦 **Outdated JavaScript libaries**
+  - If Burp pro or Retire.js is used, you will also see that AngularJS (1.8.2) and DOMPurify (2.0.7) are outdated 
 - 🧾 **Default credentials for Postgres**
 - 📤 **Weak (client-side only) upload restrictions > SVG upload with XSS etc**
 - 🆔 **Simple Identifiers (no UUIDv4)**
