@@ -136,5 +136,6 @@
 ## TODO:
 
 - **Open redirect**
-- **Change Postgres DBA priv?**
+- **Fix: in some cases a request to /image/fetch-url crashes the app**
+- **Change Postgres DBA priv? > does not really matter because postgres is running in a seperate container from the apps**
 ---
