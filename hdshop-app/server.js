@@ -384,6 +384,7 @@ app.get('/api/settings', (req, res) => {
         // Vulnerable: Exposing internal Docker network details
         network: {
           internalIp: "172.20.0.10",
+          logging: "172.20.0.20", // Remove if you want them to find this IP/logging app by fuzzing
           subnet: "172.20.0.0/16",
           gateway: "172.20.0.1",
           containerName: "hdapp-app-1"
