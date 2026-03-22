@@ -725,6 +725,8 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
             }
         };
 
+        let responseSent = false;
+
         const request = client.request(options, (response) => {
             let data = Buffer.alloc(0);
             
@@ -735,10 +737,13 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
                 // Basic size limit to prevent memory exhaustion
                 if (data.length > 10 * 1024 * 1024) { // 10MB limit
                     request.destroy();
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Response too large'
-                    });
+                    if (!responseSent) {
+                        responseSent = true;
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Response too large'
+                        });
+                    }
                 }
             });
 
@@ -746,6 +751,7 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
                 // Vulnerable: Exposing response details including internal service responses
                 
                 if (response.statusCode !== 200) {
+                    responseSent = true;
                     return res.status(400).json({
                         success: false,
                         message: `Failed to fetch image: HTTP ${response.statusCode}`,
@@ -801,6 +807,8 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
         });
 
         request.on('error', (error) => {
+            if (responseSent) return;
+            responseSent = true;
             // Vulnerable: Exposing detailed error information that may reveal internal network structure
             console.error(`SSRF Error for ${imageUrl}:`, error);
             res.status(500).json({
@@ -818,6 +826,8 @@ app.post('/api/user/:userId/image/fetch-url', async (req, res) => {
 
         request.on('timeout', () => {
             request.destroy();
+            if (responseSent) return;
+            responseSent = true;
             res.status(408).json({
                 success: false,
                 message: 'Request timeout while fetching image'
